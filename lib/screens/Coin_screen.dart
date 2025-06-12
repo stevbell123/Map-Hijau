@@ -117,14 +117,17 @@ class CoinScreen extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: VoucherProvider.getCategoryColor(
-            voucher.category,
-          ).withAlpha(100),
+          backgroundColor: const Color(
+            0xFFFFC107,
+          ).withOpacity(0.2), // Amber soft
           child: Icon(
-            VoucherProvider.getCategoryIcon(voucher.category),
-            color: VoucherProvider.getCategoryColor(voucher.category),
+            VoucherProvider.getCategoryIcon(
+              voucher.category,
+            ), 
+            color: const Color(0xFFFFC107), 
           ),
         ),
+
         title: Text(
           voucher.title,
           style: const TextStyle(fontWeight: FontWeight.bold),

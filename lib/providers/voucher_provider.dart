@@ -263,15 +263,15 @@ List<Voucher> _availableVouchers = [
   static Color getCategoryColor(String category) {
     switch (category) {
       case "Makanan":
-        return Colors.red;
+        return Colors.amber;
       case "Belanja":
-        return Colors.blue;
+        return Colors.amber;
       case "Transportasi":
-        return Colors.green;
+        return Colors.amber;
       case "Lainnya":
-        return Colors.purple;
+        return Colors.amber;
       default:
-        return Colors.grey;
+        return Colors.amber;
     }
   }
 

@@ -96,7 +96,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A1D2C),
+      backgroundColor: const Color.fromARGB(255, 9, 97, 14),
       body: SafeArea(
         child:
             _isLoading
@@ -142,8 +142,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
 
   Widget _buildShimmerLoading() {
     return Shimmer.fromColors(
-      baseColor: Colors.grey[800]!,
-      highlightColor: Colors.grey[700]!,
+      baseColor: Colors.green[300]!,
+      highlightColor: Colors.green[100]!,
       child: ListView.builder(
         padding: EdgeInsets.all(16),
         itemCount: 7,
@@ -174,7 +174,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: const Color.fromARGB(255, 5, 121, 7).withOpacity(0.3),
             blurRadius: 10,
             offset: Offset(0, 5),
           ),
@@ -420,41 +420,48 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   }
 
   Widget _buildUserAvatar(String emoji, int rank) {
-  final size = rank == 1 ? 50.0 : rank <= 3 ? 45.0 : 40.0;
-  final avatar = Container(
-    width: size,
-    height: size,
-    decoration: BoxDecoration(
-      color: Colors.white.withOpacity(0.2),
-      shape: BoxShape.circle,
-      border: Border.all(
-        color: rank == 1
-            ? Colors.amber[300]!
-            : rank == 2
-                ? Colors.grey[300]!
-                : rank == 3
-                    ? Colors.brown[300]!
-                    : Colors.green[300]!,
-        width: 2,
-      ),
-    ),
-    child: Center(
-      child: Text(
-        emoji,
-        style: TextStyle(
-          fontSize: rank == 1 ? 28 : rank <= 3 ? 24 : 20,
+    final size =
+        rank == 1
+            ? 50.0
+            : rank <= 3
+            ? 45.0
+            : 40.0;
+    final avatar = Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.2),
+        shape: BoxShape.circle,
+        border: Border.all(
+          color:
+              rank == 1
+                  ? Colors.amber[300]!
+                  : rank == 2
+                  ? Colors.grey[300]!
+                  : rank == 3
+                  ? Colors.brown[300]!
+                  : Colors.green[300]!,
+          width: 2,
         ),
       ),
-    ),
-  );
-  return rank <= 3
-      ? ScaleTransition(
-          scale: _animation,
-          child: avatar,
-        )
-      : avatar;
-}
-
+      child: Center(
+        child: Text(
+          emoji,
+          style: TextStyle(
+            fontSize:
+                rank == 1
+                    ? 28
+                    : rank <= 3
+                    ? 24
+                    : 20,
+          ),
+        ),
+      ),
+    );
+    return rank <= 3
+        ? ScaleTransition(scale: _animation, child: avatar)
+        : avatar;
+  }
 
   Widget _buildProgressBar(double progress, Map<String, Color> colors) {
     return ClipRRect(
