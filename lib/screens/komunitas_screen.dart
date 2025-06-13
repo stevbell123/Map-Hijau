@@ -188,38 +188,27 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
                         _ColorOption(
                           color: Colors.green,
                           isSelected: _selectedColor == Colors.green,
-                          onTap:
-                              () =>
-                                  setState(() => _selectedColor = Colors.green),
+                          onTap: () => setState(() => _selectedColor = Colors.green),
                         ),
                         _ColorOption(
                           color: Colors.blue,
                           isSelected: _selectedColor == Colors.blue,
-                          onTap:
-                              () =>
-                                  setState(() => _selectedColor = Colors.blue),
+                          onTap: () => setState(() => _selectedColor = Colors.blue),
                         ),
                         _ColorOption(
                           color: Colors.orange,
                           isSelected: _selectedColor == Colors.orange,
-                          onTap:
-                              () => setState(
-                                () => _selectedColor = Colors.orange,
-                              ),
+                          onTap: () => setState(() => _selectedColor = Colors.orange),
                         ),
                         _ColorOption(
                           color: Colors.teal,
                           isSelected: _selectedColor == Colors.teal,
-                          onTap:
-                              () =>
-                                  setState(() => _selectedColor = Colors.teal),
+                          onTap: () => setState(() => _selectedColor = Colors.teal),
                         ),
                         _ColorOption(
                           color: Colors.brown,
                           isSelected: _selectedColor == Colors.brown,
-                          onTap:
-                              () =>
-                                  setState(() => _selectedColor = Colors.brown),
+                          onTap: () => setState(() => _selectedColor = Colors.brown),
                         ),
                       ],
                     ),
@@ -234,39 +223,27 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
                         _IconOption(
                           icon: Icons.eco,
                           isSelected: _selectedIcon == Icons.eco,
-                          onTap:
-                              () => setState(() => _selectedIcon = Icons.eco),
+                          onTap: () => setState(() => _selectedIcon = Icons.eco),
                         ),
                         _IconOption(
                           icon: Icons.recycling,
                           isSelected: _selectedIcon == Icons.recycling,
-                          onTap:
-                              () => setState(
-                                () => _selectedIcon = Icons.recycling,
-                              ),
+                          onTap: () => setState(() => _selectedIcon = Icons.recycling),
                         ),
                         _IconOption(
                           icon: Icons.menu_book,
                           isSelected: _selectedIcon == Icons.menu_book,
-                          onTap:
-                              () => setState(
-                                () => _selectedIcon = Icons.menu_book,
-                              ),
+                          onTap: () => setState(() => _selectedIcon = Icons.menu_book),
                         ),
                         _IconOption(
                           icon: Icons.beach_access,
                           isSelected: _selectedIcon == Icons.beach_access,
-                          onTap:
-                              () => setState(
-                                () => _selectedIcon = Icons.beach_access,
-                              ),
+                          onTap: () => setState(() => _selectedIcon = Icons.beach_access),
                         ),
                         _IconOption(
                           icon: Icons.nature,
                           isSelected: _selectedIcon == Icons.nature,
-                          onTap:
-                              () =>
-                                  setState(() => _selectedIcon = Icons.nature),
+                          onTap: () => setState(() => _selectedIcon = Icons.nature),
                         ),
                       ],
                     ),
@@ -298,7 +275,7 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
                     SnackBar(
                       content: Text("Komunitas berhasil dibuat!"),
                       duration: Duration(seconds: 2),
-                    ),
+                    )
                   );
                 }
               },
@@ -342,23 +319,14 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
                           labelText: 'Pilih Komunitas',
                           border: OutlineInputBorder(),
                         ),
-                        items:
-                            komunitasList
-                                .where(
-                                  (community) =>
-                                      komunitasStatus[community['nama']] ==
-                                      true,
-                                )
-                                .map((community) {
-                                  return DropdownMenuItem<String>(
-                                    value: community['nama']?.toString() ?? '',
-                                    child: Text(
-                                      community['nama']?.toString() ??
-                                          'Tidak diketahui',
-                                    ),
-                                  );
-                                })
-                                .toList(),
+                        items: komunitasList
+                            .where((community) => komunitasStatus[community['nama']] == true)
+                            .map((community) {
+                          return DropdownMenuItem<String>(
+                            value: community['nama']?.toString() ?? '',
+                            child: Text(community['nama']?.toString() ?? 'Tidak diketahui'),
+                          );
+                        }).toList(),
                         onChanged: (value) {
                           setState(() {
                             _selectedCommunity = value;
@@ -469,22 +437,18 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder:
-                              (context) => EventScreen(
-                                newEvent: {
-                                  "nama": _titleController.text,
-                                  "komunitas":
-                                      _selectedCommunity ?? "Komunitas Saya",
-                                  "deskripsi": _descController.text,
-                                  "tanggal": DateFormat(
-                                    'dd MMM yyyy',
-                                  ).format(_selectedDate!),
-                                  "waktu": _selectedTime!.format(context),
-                                  "lokasi": _locationController.text,
-                                  "peserta": 1,
-                                  "color": Colors.green,
-                                },
-                              ),
+                          builder: (context) => EventScreen(
+                            newEvent: {
+                              "nama": _titleController.text,
+                              "komunitas": _selectedCommunity ?? "Komunitas Saya",
+                              "deskripsi": _descController.text,
+                              "tanggal": DateFormat('dd MMM yyyy').format(_selectedDate!),
+                              "waktu": _selectedTime!.format(context),
+                              "lokasi": _locationController.text,
+                              "peserta": 1,
+                              "color": Colors.green,
+                            },
+                          ),
                         ),
                       );
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -516,6 +480,79 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
     );
   }
 
+  void _showInviteFriendsDialog() {
+    final selectedCommunities = <String>{};
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Undang Teman"),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text("Pilih komunitas untuk diundang:"),
+                SizedBox(height: 16),
+                ...komunitasList.where((community) => komunitasStatus[community['nama']] == true).map((community) {
+                  final communityName = community['nama'] as String;
+                  return CheckboxListTile(
+                    title: Text(communityName),
+                    value: selectedCommunities.contains(communityName),
+                    onChanged: (bool? value) {
+                      setState(() {
+                        if (value == true) {
+                          selectedCommunities.add(communityName);
+                        } else {
+                          selectedCommunities.remove(communityName);
+                        }
+                      });
+                    },
+                    secondary: Icon(
+                      community['icon'] as IconData,
+                      color: community['color'] as Color,
+                    ),
+                  );
+                }).toList(),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text("Batal"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (selectedCommunities.isNotEmpty) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("Undangan telah dikirim ke ${selectedCommunities.length} komunitas"),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("Pilih setidaknya satu komunitas"),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
+              },
+              child: Text("Undang"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _navigateToEventScreen() {
     Navigator.push(
       context,
@@ -531,12 +568,6 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
         backgroundColor: Colors.white,
         elevation: 1,
         title: _buildSearchBar(),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.event, color: Colors.green.shade800),
-            onPressed: _navigateToEventScreen,
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -561,17 +592,26 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
             onTap: () => _showCreateEventDialog(context),
           ),
           SpeedDialChild(
-            child: Icon(Icons.search),
-            label: 'Cari Komunitas',
-            onTap: () {
-              setState(() {
-                searchQuery = '';
-                searchController.clear();
-              });
-              FocusScope.of(context).unfocus();
-            },
+            child: Icon(Icons.person_add),
+            label: 'Undang Teman',
+            onTap: _showInviteFriendsDialog,
           ),
         ],
+      ),
+      bottomNavigationBar: BottomAppBar(
+        child: Container(
+          height: 56,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                icon: Icon(Icons.event, size: 32, color: Colors.green.shade800),
+                onPressed: _navigateToEventScreen,
+                tooltip: 'Event',
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -590,18 +630,17 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
           hintText: 'Cari komunitas...',
           border: InputBorder.none,
           prefixIcon: Icon(Icons.search, color: Colors.grey),
-          suffixIcon:
-              searchQuery.isNotEmpty
-                  ? IconButton(
-                    icon: Icon(Icons.close, color: Colors.grey),
-                    onPressed: () {
-                      setState(() {
-                        searchController.clear();
-                        searchQuery = '';
-                      });
-                    },
-                  )
-                  : null,
+          suffixIcon: searchQuery.isNotEmpty
+              ? IconButton(
+                  icon: Icon(Icons.close, color: Colors.grey),
+                  onPressed: () {
+                    setState(() {
+                      searchController.clear();
+                      searchQuery = '';
+                    });
+                  },
+                )
+              : null,
         ),
       ),
     );
@@ -621,40 +660,37 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
-              children:
-                  ["Semua", "Lingkungan", "Daur Ulang", "Edukasi"]
-                      .map(
-                        (item) => Padding(
-                          padding: EdgeInsets.only(right: 8),
-                          child: FilterChip(
-                            label: Text(item),
-                            selected: selectedCategory == item,
-                            onSelected: (value) {
-                              setState(() {
-                                selectedCategory = item;
-                              });
-                            },
-                            selectedColor: Colors.green.shade100,
-                            backgroundColor: Colors.grey.shade100,
-                            labelStyle: TextStyle(
-                              color:
-                                  selectedCategory == item
-                                      ? Colors.green.shade800
-                                      : Colors.grey.shade800,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            shape: StadiumBorder(
-                              side: BorderSide(
-                                color:
-                                    selectedCategory == item
-                                        ? Colors.green
-                                        : Colors.grey.shade300,
-                              ),
-                            ),
+              children: ["Semua", "Lingkungan", "Daur Ulang", "Edukasi"]
+                  .map(
+                    (item) => Padding(
+                      padding: EdgeInsets.only(right: 8),
+                      child: FilterChip(
+                        label: Text(item),
+                        selected: selectedCategory == item,
+                        onSelected: (value) {
+                          setState(() {
+                            selectedCategory = item;
+                          });
+                        },
+                        selectedColor: Colors.green.shade100,
+                        backgroundColor: Colors.grey.shade100,
+                        labelStyle: TextStyle(
+                          color: selectedCategory == item
+                              ? Colors.green.shade800
+                              : Colors.grey.shade800,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        shape: StadiumBorder(
+                          side: BorderSide(
+                            color: selectedCategory == item
+                                ? Colors.green
+                                : Colors.grey.shade300,
                           ),
                         ),
-                      )
-                      .toList(),
+                      ),
+                    ),
+                  )
+                  .toList(),
             ),
           ),
           SizedBox(height: 12),
@@ -715,7 +751,7 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
                 color: Colors.black12,
                 blurRadius: 8,
                 offset: Offset(0, 3),
-              ),
+              )
             ],
           ),
           child: Column(
@@ -754,36 +790,35 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
                     ],
                   ),
                 ),
-                trailing:
-                    isFollowing
-                        ? TextButton(
-                          onPressed: () => _showLeaveConfirmation(nama),
-                          child: Text(
-                            "Keluar",
-                            style: TextStyle(color: Colors.red),
-                          ),
-                        )
-                        : ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              komunitasStatus[nama] = true;
-                            });
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text("Anda bergabung dengan $nama"),
-                                duration: Duration(seconds: 2),
-                              ),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green.shade600,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: Text("Gabung"),
+                trailing: isFollowing
+                    ? TextButton(
+                        onPressed: () => _showLeaveConfirmation(nama),
+                        child: Text(
+                          "Keluar",
+                          style: TextStyle(color: Colors.red),
                         ),
+                      )
+                    : ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            komunitasStatus[nama] = true;
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("Anda bergabung dengan $nama"),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green.shade600,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text("Gabung"),
+                      ),
               ),
             ],
           ),
@@ -871,9 +906,7 @@ class _EventScreenState extends State<EventScreen> {
   List<Map<String, dynamic>> get filteredEvents {
     return eventList.where((event) {
       if (selectedFilter != 'Semua' &&
-          !event['komunitas'].toLowerCase().contains(
-            selectedFilter.toLowerCase(),
-          )) {
+          !event['komunitas'].toLowerCase().contains(selectedFilter.toLowerCase())) {
         return false;
       }
       if (searchQuery.isNotEmpty &&
@@ -917,18 +950,17 @@ class _EventScreenState extends State<EventScreen> {
           hintText: 'Cari event...',
           border: InputBorder.none,
           prefixIcon: Icon(Icons.search, color: Colors.grey),
-          suffixIcon:
-              searchQuery.isNotEmpty
-                  ? IconButton(
-                    icon: Icon(Icons.close, color: Colors.grey),
-                    onPressed: () {
-                      setState(() {
-                        searchController.clear();
-                        searchQuery = '';
-                      });
-                    },
-                  )
-                  : null,
+          suffixIcon: searchQuery.isNotEmpty
+              ? IconButton(
+                  icon: Icon(Icons.close, color: Colors.grey),
+                  onPressed: () {
+                    setState(() {
+                      searchController.clear();
+                      searchQuery = '';
+                    });
+                  },
+                )
+              : null,
         ),
       ),
     );
@@ -946,46 +978,43 @@ class _EventScreenState extends State<EventScreen> {
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
-          children:
-              [
-                    "Semua",
-                    "Lingkungan",
-                    "Daur Ulang",
-                    "Tanam Pohon",
-                    "Bersih Pantai",
-                  ]
-                  .map(
-                    (item) => Padding(
-                      padding: EdgeInsets.only(right: 8),
-                      child: FilterChip(
-                        label: Text(item),
-                        selected: selectedFilter == item,
-                        onSelected: (value) {
-                          setState(() {
-                            selectedFilter = item;
-                          });
-                        },
-                        selectedColor: Colors.green.shade100,
-                        backgroundColor: Colors.grey.shade100,
-                        labelStyle: TextStyle(
-                          color:
-                              selectedFilter == item
-                                  ? Colors.green.shade800
-                                  : Colors.grey.shade800,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        shape: StadiumBorder(
-                          side: BorderSide(
-                            color:
-                                selectedFilter == item
-                                    ? Colors.green
-                                    : Colors.grey.shade300,
-                          ),
-                        ),
+          children: [
+                "Semua",
+                "Lingkungan",
+                "Daur Ulang",
+                "Tanam Pohon",
+                "Bersih Pantai",
+              ]
+              .map(
+                (item) => Padding(
+                  padding: EdgeInsets.only(right: 8),
+                  child: FilterChip(
+                    label: Text(item),
+                    selected: selectedFilter == item,
+                    onSelected: (value) {
+                      setState(() {
+                        selectedFilter = item;
+                      });
+                    },
+                    selectedColor: Colors.green.shade100,
+                    backgroundColor: Colors.grey.shade100,
+                    labelStyle: TextStyle(
+                      color: selectedFilter == item
+                          ? Colors.green.shade800
+                          : Colors.grey.shade800,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    shape: StadiumBorder(
+                      side: BorderSide(
+                        color: selectedFilter == item
+                            ? Colors.green
+                            : Colors.grey.shade300,
                       ),
                     ),
-                  )
-                  .toList(),
+                  ),
+                ),
+              )
+              .toList(),
         ),
       ),
     );
