@@ -119,22 +119,19 @@ class KomunitasProvider extends ChangeNotifier {
   // Event participation status
   final Map<String, bool> _eventParticipation = {};
 
-  // Getter for filtered komunitas
+  // Getter untuk komunitas yang difilter
   List<Komunitas> get filteredKomunitas {
     return _komunitasList.where((komunitas) {
       final isFollowing = _komunitasStatus[komunitas.nama] ?? false;
 
-      // Filter by category
       if (selectedCategory != 'Semua' && komunitas.kategori != selectedCategory) {
         return false;
       }
 
-      // Filter by follow status
       if (filterType == 'Diikuti' && !isFollowing) {
         return false;
       }
 
-      // Filter by search query
       if (searchQuery.isNotEmpty &&
           !komunitas.nama.toLowerCase().contains(searchQuery.toLowerCase())) {
         return false;
@@ -144,16 +141,17 @@ class KomunitasProvider extends ChangeNotifier {
     }).toList();
   }
 
-  // Getter for filtered events
+  // Getter untuk semua event
+  List<Event> get allEvents => _eventList;
+
+  // Getter untuk event yang difilter
   List<Event> get filteredEvents {
     return _eventList.where((event) {
-      // Filter by category
       if (eventFilter != 'Semua' &&
           !event.komunitas.toLowerCase().contains(eventFilter.toLowerCase())) {
         return false;
       }
 
-      // Filter by search query
       if (eventSearchQuery.isNotEmpty &&
           !event.nama.toLowerCase().contains(eventSearchQuery.toLowerCase())) {
         return false;
@@ -161,6 +159,11 @@ class KomunitasProvider extends ChangeNotifier {
 
       return true;
     }).toList();
+  }
+
+  // Ambil event berdasarkan komunitas
+  List<Event> getEventsByKomunitas(String komunitasName) {
+    return _eventList.where((event) => event.komunitas == komunitasName).toList();
   }
 
   // Get komunitas by name
@@ -181,68 +184,84 @@ class KomunitasProvider extends ChangeNotifier {
     }
   }
 
-  // Check if user follows a komunitas
+  // Cek apakah mengikuti komunitas
   bool isFollowing(String komunitasName) {
     return _komunitasStatus[komunitasName] ?? false;
   }
 
-  // Check if user participates in an event
+  // Cek apakah mengikuti event
   bool isParticipating(String eventName) {
     return _eventParticipation[eventName] ?? false;
   }
 
-  // Toggle follow status for komunitas
+  // Ikuti/tidak komunitas
   void toggleFollowKomunitas(String komunitasName) {
     _komunitasStatus[komunitasName] = !(_komunitasStatus[komunitasName] ?? false);
     notifyListeners();
   }
 
-  // Toggle participation status for event
+  // Ikut/tidak ikut event
   void toggleEventParticipation(String eventName) {
     _eventParticipation[eventName] = !(_eventParticipation[eventName] ?? false);
     notifyListeners();
   }
 
-  // Add new komunitas
+  // Tambah komunitas baru
   void addKomunitas(Komunitas newKomunitas) {
     _komunitasList.add(newKomunitas);
     _komunitasStatus[newKomunitas.nama] = true;
     notifyListeners();
   }
 
-  // Add new event
+  // Tambah event baru
   void addEvent(Event newEvent) {
     _eventList.add(newEvent);
     notifyListeners();
   }
 
-  // Update search query for komunitas
+  // Hapus event berdasarkan nama
+  void removeEvent(String eventName) {
+    _eventList.removeWhere((event) => event.nama == eventName);
+    _eventParticipation.remove(eventName);
+    notifyListeners();
+  }
+
+  // Update query pencarian komunitas
   void setSearchQuery(String query) {
     searchQuery = query;
     notifyListeners();
   }
 
-  // Update search query for events
+  // Update query pencarian event
   void setEventSearchQuery(String query) {
     eventSearchQuery = query;
     notifyListeners();
   }
 
-  // Update selected category
+  // Update kategori komunitas
   void setSelectedCategory(String category) {
     selectedCategory = category;
     notifyListeners();
   }
 
-  // Update filter type
+  // Update filter komunitas
   void setFilterType(String filter) {
     filterType = filter;
     notifyListeners();
   }
 
-  // Update event filter
+  // Update filter event
   void setEventFilter(String filter) {
     eventFilter = filter;
+    notifyListeners();
+  }
+
+  // Gabungkan provider ini dengan provider lain jika dibutuhkan (placeholder contoh)
+  void mergeWith(KomunitasProvider other) {
+    _komunitasList.addAll(other._komunitasList);
+    _eventList.addAll(other._eventList);
+    _komunitasStatus.addAll(other._komunitasStatus);
+    _eventParticipation.addAll(other._eventParticipation);
     notifyListeners();
   }
 }

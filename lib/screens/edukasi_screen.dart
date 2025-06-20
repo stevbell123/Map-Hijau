@@ -3,6 +3,7 @@ import 'daur_ulang_kertas.dart';
 import 'daur_ulang_logam.dart';
 import 'daur_ulang_plastik.dart';
 import 'manfaat_daur_ulang.dart';
+
 class EdukasiScreen extends StatelessWidget {
   const EdukasiScreen({super.key});
 
@@ -10,27 +11,93 @@ class EdukasiScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Edukasi Daur Ulang", style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.green,
+        title: Text("Edukasi Daur Ulang", 
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        backgroundColor: Colors.green[700],
+        elevation: 0,
       ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: GridView.count(
-          crossAxisCount: 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          children: [
-            _buildEduCard(context, "Daur Ulang Logam", Icons.precision_manufacturing, Colors.grey),
-            _buildEduCard(context, "Daur Ulang Plastik", Icons.recycling, Colors.blue),
-            _buildEduCard(context, "Daur Ulang Kertas", Icons.article, Colors.orange),
-            _buildEduCard(context, "Manfaat Daur Ulang", Icons.eco, Colors.green),
-          ],
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.green[50]!, Colors.white],
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Text(
+                "Pilih Jenis Edukasi",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green[800],
+                ),
+              ),
+              SizedBox(height: 20),
+              Expanded(
+                child: GridView.count(
+                  crossAxisCount: 2,
+                  childAspectRatio: 0.9,
+                  crossAxisSpacing: 20,
+                  mainAxisSpacing: 20,
+                  padding: EdgeInsets.all(8),
+                  children: [
+                    _buildModernEduCard(
+                      context,
+                      "Daur Ulang Logam",
+                      Icons.precision_manufacturing,
+                      Colors.blueGrey,
+                      LinearGradient(
+                        colors: [Colors.blueGrey[600]!, Colors.blueGrey[400]!],
+                      ),
+                    ),
+                    _buildModernEduCard(
+                      context,
+                      "Daur Ulang Plastik",
+                      Icons.recycling,
+                      Colors.lightBlue,
+                      LinearGradient(
+                        colors: [Colors.lightBlue[600]!, Colors.lightBlue[300]!],
+                      ),
+                    ),
+                    _buildModernEduCard(
+                      context,
+                      "Daur Ulang Kertas",
+                      Icons.article,
+                      Colors.orange,
+                      LinearGradient(
+                        colors: [Colors.orange[600]!, Colors.orange[300]!],
+                      ),
+                    ),
+                    _buildModernEduCard(
+                      context,
+                      "Manfaat Daur Ulang",
+                      Icons.eco,
+                      Colors.green,
+                      LinearGradient(
+                        colors: [Colors.green[600]!, Colors.green[400]!],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildEduCard(BuildContext context, String title, IconData icon, Color color) {
+  Widget _buildModernEduCard(
+    BuildContext context,
+    String title,
+    IconData icon,
+    Color color,
+    Gradient gradient,
+  ) {
     return GestureDetector(
       onTap: () {
         if (title == "Daur Ulang Logam") {
@@ -43,25 +110,61 @@ class EdukasiScreen extends StatelessWidget {
           Navigator.push(context, MaterialPageRoute(builder: (_) => RecyclingBenefitsPage()));
         }
       },
-      child: Container(
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(15),
-          boxShadow: [
-            BoxShadow(color: Colors.black26, blurRadius: 5, offset: Offset(0, 3)),
-          ],
+      child: Card(
+        elevation: 5,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 50, color: Colors.white),
-            SizedBox(height: 8),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-            ),
-          ],
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            gradient: gradient,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  icon,
+                  size: 40,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(height: 15),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              SizedBox(height: 10),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  'Pelajari',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
