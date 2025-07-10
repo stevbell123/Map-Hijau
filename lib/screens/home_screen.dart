@@ -12,6 +12,8 @@ import 'notification_screen.dart';
 import 'VoucherScreen.dart';
 import 'green_habit_screen.dart';
 import 'detail_grafik_screen.dart';
+import 'plan_screen.dart';
+import 'friends_screen.dart';
 import '../providers/auth_provider.dart';
 import '../providers/voucher_provider.dart';
 import 'leaderboard_screen.dart';
@@ -39,7 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: Colors.blue.shade900,
       drawer: _buildDrawer(),
-      appBar: _selectedIndex == 0 ? _buildAppBar() : null,
+      appBar: _selectedIndex == 0 ? _buildCustomAppBar(context) : null,
       body: _getBody(),
       bottomNavigationBar: BottomNavigationBar(
         items: const [
@@ -73,7 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildDrawer() {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final user = authProvider.loggedInUser;
-    
+
     return Drawer(
       child: Container(
         decoration: BoxDecoration(
@@ -102,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   SizedBox(height: 10),
                   Text(
-                    user?.name ?? 'Guest',
+                    user?.namaLengkap ?? user?.username ?? 'Guest',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,
@@ -117,18 +119,35 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             ListTile(
-              leading: Icon(Icons.leaderboard, color: Colors.white),
-              title: Text(
-                'Leaderboard',
-                style: TextStyle(color: Colors.white),
-              ),
+              leading: Icon(Icons.event_note, color: Colors.white),
+              title: Text('Plan', style: TextStyle(color: Colors.white)),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => LeaderboardScreen(),
-                  ),
+                  MaterialPageRoute(builder: (context) => const PlanScreen()),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.help, color: Colors.white),
+              title: Text('FAQ', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => FAQScreen()),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.leaderboard, color: Colors.white),
+              title: Text('Leaderboard', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => LeaderboardScreen()),
                 );
               },
             ),
@@ -149,194 +168,169 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  AppBar _buildAppBar() {
-    return AppBar(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      flexibleSpace: Container(
+  /// APPBAR CUSTOM CANTIK
+  PreferredSizeWidget _buildCustomAppBar(BuildContext context) {
+    final double statusBar = MediaQuery.of(context).padding.top;
+    return PreferredSize(
+      preferredSize: Size.fromHeight(68 + statusBar),
+      child: Container(
+        padding: EdgeInsets.only(top: statusBar, left: 12, right: 12),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [Colors.blue.shade900, Colors.blue.shade800],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.3),
-              blurRadius: 10,
+              color: Colors.black.withOpacity(0.18),
+              blurRadius: 14,
               offset: Offset(0, 4),
             ),
           ],
         ),
-      ),
-      leading: Builder(
-        builder: (context) => IconButton(
-          icon: Icon(Icons.menu, color: Colors.white),
-          onPressed: () => Scaffold.of(context).openDrawer(),
+        child: Row(
+          children: [
+            // Icon Menu Drawer
+            Builder(
+              builder: (menuContext) => _prettyCircleIcon(
+                icon: Icons.menu,
+                onTap: () => Scaffold.of(menuContext).openDrawer(),
+              ),
+            ),
+            SizedBox(width: 10),
+            _prettyCircleIcon(icon: Icons.recycling, bgGradient: LinearGradient(colors: [Colors.lightBlueAccent, Colors.blue.shade900])),
+            Expanded(
+              child: Center(
+                child: RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: "MAP",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 22,
+                          letterSpacing: 1.2,
+                          shadows: [Shadow(color: Colors.black12, blurRadius: 3)],
+                        ),
+                      ),
+                      TextSpan(
+                        text: "HIJAU",
+                        style: TextStyle(
+                          color: Colors.greenAccent.shade400,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 22,
+                          letterSpacing: 1.2,
+                          shadows: [Shadow(color: Colors.black12, blurRadius: 3)],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            _prettyBadgeIcon(
+              icon: Icons.notifications_outlined,
+              badgeCount: 3,
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => NotificationScreen()));
+              },
+            ),
+            SizedBox(width: 8),
+            _prettyCircleIcon(
+              icon: Icons.eco,
+              bgGradient: LinearGradient(colors: [Colors.greenAccent.shade400, Colors.green.shade800]),
+              iconColor: Colors.white,
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => GreenHabitScreen())),
+            ),
+            SizedBox(width: 8),
+            _prettyCircleIcon(
+              icon: Icons.person,
+              iconColor: Colors.blue.shade900,
+              bgGradient: LinearGradient(colors: [Colors.white, Colors.blue.shade100]),
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ProfilePage())),
+            ),
+          ],
         ),
-      ),
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 1.5),
-                ),
-                child: Icon(Icons.recycling, color: Colors.white, size: 24),
-              ),
-              SizedBox(width: 8),
-              Text(
-                "MAP",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.5,
-                ),
-              ),
-              Text(
-                "HIJAU",
-                style: TextStyle(
-                  color: Colors.greenAccent.shade400,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.5,
-                ),
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              _buildAppBarIcon(
-                icon: Icons.notifications_outlined,
-                hasNotification: true,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => NotificationScreen()),
-                ),
-              ),
-              SizedBox(width: 12),
-              _buildAppBarIcon(
-                icon: Icons.eco,
-                isSpecial: true,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => GreenHabitScreen()),
-                ),
-              ),
-              SizedBox(width: 12),
-              _buildAppBarIcon(
-                isProfile: true,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => ProfilePage()),
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }
 
-  Widget _buildAppBarIcon({
-    IconData? icon,
-    bool hasNotification = false,
-    bool isSpecial = false,
-    bool isProfile = false,
-    required VoidCallback onTap,
+  Widget _prettyCircleIcon({
+    required IconData icon,
+    Color iconColor = Colors.white,
+    VoidCallback? onTap,
+    Gradient? bgGradient,
   }) {
     return InkWell(
+      borderRadius: BorderRadius.circular(22),
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
       child: Container(
-        padding: EdgeInsets.all(6),
+        width: 42,
+        height: 42,
         decoration: BoxDecoration(
-          gradient: isSpecial
-              ? LinearGradient(
-                  colors: [
-                    Colors.greenAccent.shade400.withOpacity(0.3),
-                    Colors.greenAccent.shade700.withOpacity(0.3),
-                  ],
-                )
-              : null,
-          color: !isSpecial ? Colors.white.withOpacity(0.1) : null,
+          gradient: bgGradient,
+          color: bgGradient == null ? Colors.white.withOpacity(0.13) : null,
           shape: BoxShape.circle,
-          border: isSpecial
-              ? Border.all(
-                  color: Colors.greenAccent.shade200.withOpacity(0.5),
-                  width: 1.5,
-                )
-              : null,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 4,
+              offset: Offset(0, 2),
+            ),
+          ],
         ),
-        child: isProfile
-            ? Container(
-                padding: EdgeInsets.all(2),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.greenAccent.shade400,
-                      Colors.blueAccent.shade400,
-                    ],
-                  ),
-                ),
-                child: Container(
-                  padding: EdgeInsets.all(2),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade900,
-                    shape: BoxShape.circle,
-                  ),
-                  child: CircleAvatar(
-                    radius: 14,
-                    backgroundColor: Colors.white,
-                    child: Icon(
-                      Icons.person,
-                      color: Colors.blue.shade900,
-                      size: 18,
-                    ),
-                  ),
-                ),
-              )
-            : Stack(
-                children: [
-                  Icon(
-                    icon!,
-                    color: Colors.white,
-                    size: 26,
-                  ),
-                  if (hasNotification)
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      child: Container(
-                        width: 12,
-                        height: 12,
-                        decoration: BoxDecoration(
-                          color: Colors.redAccent,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.blue.shade900,
-                            width: 2,
-                          ),
-                        ),
-                      ),
-                    ),
+        child: Icon(icon, color: iconColor, size: 22),
+      ),
+    );
+  }
+
+  Widget _prettyBadgeIcon({
+    required IconData icon,
+    required int badgeCount,
+    VoidCallback? onTap,
+  }) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        _prettyCircleIcon(icon: icon, onTap: onTap),
+        if (badgeCount > 0)
+          Positioned(
+            right: 2,
+            top: 2,
+            child: Container(
+              width: 18,
+              height: 18,
+              decoration: BoxDecoration(
+                color: Colors.redAccent,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
+                boxShadow: [
+                  BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
                 ],
               ),
-      ),
+              child: Center(
+                child: Text(
+                  '$badgeCount',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 
   Widget _buildHomeContent() {
     final authProvider = Provider.of<AuthProvider>(context);
     final user = authProvider.loggedInUser;
-    
+
     if (user == null) {
       return Center(
         child: Text(
@@ -351,11 +345,11 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           _buildStatsCard(),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           _buildFeaturesGrid(),
-          SizedBox(height: 30),
+          const SizedBox(height: 30),
           _buildChatInput(),
         ],
       ),
@@ -364,13 +358,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildStatsCard() {
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.green, Colors.lightGreen],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
+        gradient: const LinearGradient(colors: [Colors.green, Colors.lightGreen]),
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: const [
           BoxShadow(
             color: Colors.black26,
             blurRadius: 5,
@@ -417,7 +409,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           GestureDetector(
             onTap: () {
               Navigator.push(
@@ -430,8 +422,8 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 180,
             ),
           ),
-          SizedBox(height: 5),
-          Text(
+          const SizedBox(height: 5),
+          const Text(
             "Pembuangan sampah yang telah kamu selesaikan",
             style: TextStyle(
               fontSize: 14,
@@ -450,19 +442,23 @@ class _HomeScreenState extends State<HomeScreen> {
       mainAxisSpacing: 16,
       crossAxisSpacing: 16,
       childAspectRatio: 1.2,
-      physics: NeverScrollableScrollPhysics(),
+      physics: const NeverScrollableScrollPhysics(),
       children: [
         _buildFeatureCard(
           "Tempat Sampah",
           Icons.delete,
-          SampahScreen(),
+          TempatSampahListScreen(),
         ),
         _buildFeatureCard(
           "Komunitas",
-          Icons.people,
+          Icons.groups,
           KomunitasScreen(),
         ),
-        _buildFeatureCard("FAQ", Icons.help, FAQScreen()),
+        _buildFeatureCard(
+          "Friends",
+          Icons.person,
+          FriendsScreen(),
+        ),
         _buildFeatureCard(
           "Achievement",
           Icons.emoji_events,
@@ -474,7 +470,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildChatInput() {
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -483,7 +479,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: Colors.black26,
             blurRadius: 5,
@@ -493,31 +489,31 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Row(
         children: [
-          Icon(Icons.park, color: Colors.white, size: 30),
-          SizedBox(width: 10),
+          const Icon(Icons.park, color: Colors.white, size: 30),
+          const SizedBox(width: 10),
           Expanded(
             child: TextField(
               controller: _chatController,
-              style: TextStyle(
+              style: const TextStyle(
                 color: Colors.black,
                 fontSize: 16,
               ),
               decoration: InputDecoration(
                 hintText: "Ketik sesuatu di sini...",
-                hintStyle: TextStyle(color: Colors.black54),
+                hintStyle: const TextStyle(color: Colors.black54),
                 filled: true,
                 fillColor: Colors.white,
-                contentPadding: EdgeInsets.symmetric(
+                contentPadding: const EdgeInsets.symmetric(
                   vertical: 10,
                   horizontal: 15,
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.white),
+                  borderSide: const BorderSide(color: Colors.white),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
+                  borderSide: const BorderSide(
                     color: Colors.white,
                     width: 2,
                   ),
@@ -525,14 +521,14 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          SizedBox(width: 8),
+          const SizedBox(width: 8),
           ElevatedButton(
             onPressed: () {
               _chatController.clear();
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(
+              padding: const EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 14,
               ),
@@ -540,7 +536,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: Icon(Icons.send, color: Colors.green),
+            child: const Icon(Icons.send, color: Colors.green),
           ),
         ],
       ),
@@ -559,16 +555,16 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         children: [
           Icon(icon, color: iconColor, size: 35),
-          SizedBox(height: 5),
+          const SizedBox(height: 5),
           Text(
             value,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 18,
               color: Colors.white,
               fontWeight: FontWeight.bold,
             ),
           ),
-          Text(title, style: TextStyle(fontSize: 14, color: Colors.white)),
+          Text(title, style: const TextStyle(fontSize: 14, color: Colors.white)),
         ],
       ),
     );
@@ -581,9 +577,9 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       child: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(colors: [Colors.green, Colors.teal]),
+          gradient: const LinearGradient(colors: [Colors.green, Colors.teal]),
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
               color: Colors.black26,
               blurRadius: 5,
@@ -591,16 +587,16 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-        padding: EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 40, color: Colors.white),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Text(
               title,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
                 color: Colors.white,
                 fontWeight: FontWeight.bold,

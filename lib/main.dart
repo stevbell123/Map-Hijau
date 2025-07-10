@@ -8,7 +8,7 @@ import 'screens/komunitas_screen.dart';
 import 'screens/barcode_screen.dart';
 import 'screens/green_habit_screen.dart';
 import 'screens/settings_screen.dart';
-import 'screens/coin_screen.dart';  
+import 'screens/coin_screen.dart';
 
 // Providers
 import 'providers/auth_provider.dart';
@@ -47,13 +47,15 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/login',
       routes: {
+        '/': (context) => const LoginScreen(), // Tambahkan ini agar route '/' tidak error
         '/login': (context) => const LoginScreen(),
         '/home': (context) => const HomeScreen(),
         '/komunitas': (context) => KomunitasScreen(),
         '/settings': (context) => const SettingsScreen(),
         '/barcode': (context) => const BarcodeScreen(),
         '/habit': (context) => const GreenHabitScreen(),
-        '/coin': (context) => const CoinScreen(),   
+        '/coin': (context) => const CoinScreen(),
+        // Pastikan semua screen sudah tersedia
       },
       builder: (BuildContext context, Widget? widget) {
         ErrorWidget.builder = (FlutterErrorDetails errorDetails) {

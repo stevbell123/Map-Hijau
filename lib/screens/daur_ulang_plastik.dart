@@ -1,462 +1,241 @@
 import 'package:flutter/material.dart';
 
-class PlasticRecyclingPage extends StatefulWidget {
-  const PlasticRecyclingPage({super.key});
+class DaurUlangPlastikPage extends StatefulWidget {
+  const DaurUlangPlastikPage({super.key});
 
   @override
-  State<PlasticRecyclingPage> createState() => _PlasticRecyclingPageState();
+  State<DaurUlangPlastikPage> createState() => _DaurUlangPlastikPageState();
 }
 
-class _PlasticRecyclingPageState extends State<PlasticRecyclingPage> {
-  int _currentStep = 0;
-  bool _showQuiz = false;
-  int _quizScore = 0;
-  int _selectedQuizAnswer = -1;
-  bool _quizSubmitted = false;
-
-  final List<Map<String, dynamic>> _plasticTypes = [
+class _DaurUlangPlastikPageState extends State<DaurUlangPlastikPage> {
+  final List<Map<String, String>> plasticTypes = [
     {
-      'code': '1',
-      'name': 'PET/PETE',
-      'description': 'Botol minuman, wadah makanan',
-      'recyclable': true,
-      'recyclableInfo':
-          'Mudah didaur ulang menjadi serat polyester, karpet, dan wadah makanan baru',
+      'jenis': 'PET (1)',
+      'contoh': 'Botol minuman, wadah makanan',
+      'manfaat': 'Didaur ulang menjadi pakaian, serat tekstil, dan wadah baru.',
     },
     {
-      'code': '2',
-      'name': 'HDPE',
-      'description': 'Botol susu, botol sampo',
-      'recyclable': true,
-      'recyclableInfo':
-          'Sering didaur ulang menjadi botol baru, kayu plastik, dan pipa',
+      'jenis': 'HDPE (2)',
+      'contoh': 'Botol sampo, botol deterjen',
+      'manfaat': 'Didaur ulang menjadi botol baru, pipa plastik, dan kotak.',
     },
     {
-      'code': '3',
-      'name': 'PVC',
-      'description': 'Pipa, bungkus makanan',
-      'recyclable': false,
-      'recyclableInfo':
-          'Sulit didaur ulang karena mengandung klorin yang berbahaya saat diproses',
+      'jenis': 'PVC (3)',
+      'contoh': 'Pipa air, pembungkus makanan',
+      'manfaat': 'Sulit didaur ulang, sering tidak diterima di fasilitas umum.',
     },
   ];
 
-  final List<Map<String, dynamic>> _quizQuestions = [
+  final List<Map<String, dynamic>> _quiz = [
     {
-      'question': 'Plastik jenis apa yang paling mudah didaur ulang?',
-      'answers': ['PET', 'PVC', 'PS', 'LDPE'],
-      'correct': 0,
+      'question': 'Apa jenis plastik yang paling mudah didaur ulang?',
+      'options': ['PVC', 'PET', 'LDPE', 'PS'],
+      'answer': 1,
     },
     {
-      'question': 'Apa simbol daur ulang untuk plastik HDPE?',
-      'answers': ['1', '2', '3', '4'],
-      'correct': 1,
+      'question': 'Apa manfaat utama daur ulang plastik?',
+      'options': [
+        'Meningkatkan limbah',
+        'Mengurangi polusi dan penggunaan bahan baku baru',
+        'Mempercepat pembakaran',
+        'Menghasilkan limbah beracun',
+      ],
+      'answer': 1,
     },
   ];
+
+  int _currentQuestion = 0;
+  int? _selectedAnswer;
+  bool _isAnswered = false;
+  bool _isCorrect = false;
+
+  void _submitAnswer() {
+    if (_selectedAnswer == null) return;
+    setState(() {
+      _isAnswered = true;
+      _isCorrect = _selectedAnswer == _quiz[_currentQuestion]['answer'];
+    });
+  }
+
+  void _nextQuestion() {
+    if (_currentQuestion < _quiz.length - 1) {
+      setState(() {
+        _currentQuestion++;
+        _selectedAnswer = null;
+        _isAnswered = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Daur Ulang Plastik'),
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.blue[700]!, Colors.blue[400]!],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+        backgroundColor: Colors.blue[700],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Mengapa Daur Ulang Plastik Penting?',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue,
+              ),
             ),
-          ),
+            const SizedBox(height: 16),
+            const Text(
+              'Daur ulang plastik membantu mengurangi pencemaran lingkungan, menyelamatkan hewan laut, dan mengurangi kebutuhan bahan baku minyak bumi. Plastik bisa terurai hingga ratusan tahun jika tidak dikelola dengan baik.',
+              style: TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Jenis Plastik dan Contohnya',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue,
+              ),
+            ),
+            const SizedBox(height: 10),
+            ...plasticTypes.map(_buildPlasticCard).toList(),
+            const SizedBox(height: 24),
+            const Text(
+              'Fakta Menarik Tentang Daur Ulang Plastik',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue,
+              ),
+            ),
+            const SizedBox(height: 10),
+            _buildFact(
+              'Botol plastik membutuhkan waktu hingga 450 tahun untuk terurai.',
+            ),
+            _buildFact(
+              'Kurang dari 10% plastik global benar-benar didaur ulang.',
+            ),
+            _buildFact('Daur ulang plastik dapat menghemat energi hingga 80%.'),
+            _buildFact(
+              'Plastik daur ulang digunakan untuk membuat karpet, pakaian, hingga bangku taman.',
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Mini Kuis: Tes Pengetahuanmu!',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue,
+              ),
+            ),
+            _buildQuizCard(),
+          ],
         ),
       ),
-      body: _showQuiz ? _buildQuizSection() : _buildMainContent(),
-      floatingActionButton: _showQuiz
-          ? null
-          : FloatingActionButton.extended(
-              onPressed: () {
-                setState(() {
-                  _showQuiz = true;
-                  _quizScore = 0;
-                  _selectedQuizAnswer = -1;
-                  _quizSubmitted = false;
-                });
-              },
-              icon: const Icon(Icons.quiz),
-              label: const Text('Kuis Daur Ulang'),
-              backgroundColor: Colors.blue,
-            ),
     );
   }
 
-  Widget _buildMainContent() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildPlasticCard(Map<String, String> plastic) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      elevation: 2,
+      child: ListTile(
+        leading: const Icon(Icons.recycling, color: Colors.blue),
+        title: Text(
+          plastic['jenis']!,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Contoh: ${plastic['contoh']}"),
+            const SizedBox(height: 4),
+            Text("Manfaat: ${plastic['manfaat']}"),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFact(String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
         children: [
-          const Text(
-            'Panduan Daur Ulang Plastik',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.blue,
-            ),
-          ),
-          const SizedBox(height: 20),
-          Card(
-            elevation: 4,
-            child: Stepper(
-              currentStep: _currentStep,
-              onStepContinue: () {
-                if (_currentStep < 2) {
-                  setState(() {
-                    _currentStep += 1;
-                  });
-                }
-              },
-              onStepCancel: () {
-                if (_currentStep > 0) {
-                  setState(() {
-                    _currentStep -= 1;
-                  });
-                }
-              },
-              steps: [
-                Step(
-                  title: const Text('Pemilahan Plastik'),
-                  content: const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Pilah plastik berdasarkan kode resin (angka dalam segitiga panah):',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                      SizedBox(height: 10),
-                      ListTile(
-                        leading: Icon(Icons.looks_one, color: Colors.blue),
-                        title: Text('PET/PETE - Kode 1'),
-                      ),
-                      ListTile(
-                        leading: Icon(Icons.looks_two, color: Colors.blue),
-                        title: Text('HDPE - Kode 2'),
-                      ),
-                      ListTile(
-                        leading: Icon(Icons.looks_3, color: Colors.blue),
-                        title: Text('PVC - Kode 3'),
-                      ),
-                      SizedBox(height: 10),
-                      Text(
-                        'Gunakan tooltip dengan menekan lama pada item untuk info lebih lanjut',
-                        style: TextStyle(fontStyle: FontStyle.italic),
-                      ),
-                    ],
-                  ),
-                  isActive: _currentStep >= 0,
-                ),
-                Step(
-                  title: const Text('Pembersihan'),
-                  content: const Text(
-                    'Bersihkan plastik dari sisa makanan atau minuman. Tidak perlu bersih sempurna, tetapi pastikan tidak ada sisa yang banyak.',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  isActive: _currentStep >= 1,
-                ),
-                Step(
-                  title: const Text('Penyerahan ke Bank Sampah'),
-                  content: const Text(
-                    'Bawa plastik yang sudah dipilah ke bank sampah terdekat atau tempat pengumpulan daur ulang. Pastikan plastik kering sebelum diserahkan.',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  isActive: _currentStep >= 2,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 30),
-          const Text(
-            'Jenis Plastik dan Kemampuan Daur Ulang',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.blue,
-            ),
-          ),
-          const SizedBox(height: 10),
-          ..._plasticTypes
-              .map((plastic) => _buildPlasticTypeCard(plastic))
-              .toList(),
-          const SizedBox(height: 20),
-          _buildRecyclingFacts(),
+          const Icon(Icons.lightbulb, color: Colors.green),
+          const SizedBox(width: 8),
+          Expanded(child: Text(text)),
         ],
       ),
     );
   }
 
-  Widget _buildPlasticTypeCard(Map<String, dynamic> plastic) {
-    return Tooltip(
-      message: plastic['recyclableInfo'],
-      waitDuration: const Duration(seconds: 1),
-      child: Card(
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        child: ListTile(
-          leading: Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: Colors.blue[50],
-              borderRadius: BorderRadius.circular(25),
-              border: Border.all(color: Colors.blue, width: 2),
-            ),
-            child: Center(
-              child: Text(
-                plastic['code'],
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue,
-                ),
-              ),
-            ),
-          ),
-          title: Text(
-            plastic['name'],
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          subtitle: Text(plastic['description']),
-          trailing: Icon(
-            plastic['recyclable'] ? Icons.check_circle : Icons.cancel,
-            color: plastic['recyclable'] ? Colors.green : Colors.red,
-          ),
-        ),
-      ),
-    );
-  }
+  Widget _buildQuizCard() {
+    final current = _quiz[_currentQuestion];
+    final isLast = _currentQuestion == _quiz.length - 1;
 
-  Widget _buildRecyclingFacts() {
     return Card(
+      margin: const EdgeInsets.only(top: 12),
       elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const ListTile(
-              leading: Icon(Icons.lightbulb, color: Colors.blue),
-              title: Text(
-                'Fakta Menarik:',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue,
-                ),
-              ),
-            ),
-            const Divider(),
-            _buildFactItem('1 botol plastik bisa terurai dalam 450 tahun!'),
-            _buildFactItem('Daur ulang 1 ton plastik menghemat 5,774 kWh energi.'),
-            _buildFactItem('Hanya 9% plastik di dunia yang benar-benar didaur ulang.'),
-            _buildFactItem('Plastik daur ulang bisa jadi kaos, karpet, atau furnitur.'),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFactItem(String text) {
-    return ListTile(
-      dense: true,
-      leading: const Icon(Icons.adjust, size: 16, color: Colors.blue),
-      title: Text(text),
-    );
-  }
-
-  Widget _buildQuizSection() {
-    final currentQuestion =
-        _quizQuestions[_quizScore < _quizQuestions.length ? _quizScore : 0];
-
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Kuis Daur Ulang Plastik',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.blue[700],
-            ),
-          ),
-          const SizedBox(height: 10),
-          LinearProgressIndicator(
-            value: _quizQuestions.isEmpty
-                ? 0
-                : (_quizScore / _quizQuestions.length),
-            backgroundColor: Colors.blue[100],
-            color: Colors.blue,
-            minHeight: 10,
-          ),
-          const SizedBox(height: 20),
-          if (_quizScore < _quizQuestions.length) ...[
             Text(
-              'Pertanyaan ${_quizScore + 1}/${_quizQuestions.length}',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue,
-              ),
+              current['question'],
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 10),
-            Card(
-              elevation: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  currentQuestion['question'],
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.w500),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            ...List.generate(currentQuestion['answers'].length, (index) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Card(
-                  elevation: 2,
-                  color: _quizSubmitted
-                      ? (index == currentQuestion['correct']
-                          ? Colors.green[50]
-                          : (_selectedQuizAnswer == index
-                              ? Colors.red[50]
-                              : Colors.white))
-                      : (_selectedQuizAnswer == index
-                          ? Colors.blue[50]
-                          : Colors.white),
-                  child: ListTile(
-                    title: Text(currentQuestion['answers'][index]),
-                    onTap: _quizSubmitted
+            const SizedBox(height: 12),
+            ...(current['options'] as List<String>).asMap().entries.map((
+              entry,
+            ) {
+              final index = entry.key;
+              final option = entry.value;
+              return RadioListTile<int>(
+                value: index,
+                groupValue: _selectedAnswer,
+                title: Text(option),
+                onChanged:
+                    _isAnswered
                         ? null
-                        : () {
-                            setState(() {
-                              _selectedQuizAnswer = index;
-                            });
-                          },
-                    trailing: _quizSubmitted
-                        ? (index == currentQuestion['correct']
-                            ? const Icon(Icons.check, color: Colors.green)
-                            : (_selectedQuizAnswer == index
-                                ? const Icon(Icons.close, color: Colors.red)
-                                : null))
-                        : (_selectedQuizAnswer == index
-                            ? const Icon(Icons.radio_button_checked,
-                                color: Colors.blue)
-                            : const Icon(Icons.radio_button_unchecked,
-                                color: Colors.grey)),
-                  ),
-                ),
+                        : (val) => setState(() => _selectedAnswer = val),
               );
             }),
-            const SizedBox(height: 20),
-            if (!_quizSubmitted)
+            const SizedBox(height: 12),
+            if (!_isAnswered)
               ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ), 
-                onPressed: _selectedQuizAnswer == -1
-                    ? null
-                    : () {
-                        setState(() {
-                          _quizSubmitted = true;
-                          if (_selectedQuizAnswer ==
-                              currentQuestion['correct']) {
-                            _quizScore++;
-                          }
-                        });
-                      },
-                child: const Text('Submit Jawaban'),
+                onPressed: _selectedAnswer == null ? null : _submitAnswer,
+                child: const Text('Kirim Jawaban'),
               )
-            else
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ), 
-                onPressed: () {
-                  setState(() {
-                    _selectedQuizAnswer = -1;
-                    _quizSubmitted = false;
-                    if (_quizScore >= _quizQuestions.length) {
-                      _showQuiz = false;
-                      _quizScore = 0;
-                    }
-                  });
-                },
-                child: Text(
-                  _quizScore < _quizQuestions.length
-                      ? 'Pertanyaan Berikutnya'
-                      : 'Selesai',
+            else ...[
+              Text(
+                _isCorrect
+                    ? '✅ Jawaban benar!'
+                    : '❌ Jawaban salah. Jawaban yang benar: ${current['options'][current['answer']]}',
+                style: TextStyle(
+                  color: _isCorrect ? Colors.green : Colors.red,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-          ] else ...[
-            Card(
-              elevation: 4,
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    const Icon(Icons.celebration,
-                        size: 60, color: Colors.blue),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Selamat!',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'Skor Anda: $_quizScore/${_quizQuestions.length}',
-                      style: const TextStyle(fontSize: 18),
-                    ),
-                  ],
+              const SizedBox(height: 10),
+              if (!isLast)
+                ElevatedButton(
+                  onPressed: _nextQuestion,
+                  child: const Text('Soal Berikutnya'),
+                )
+              else
+                const Text(
+                  '🎉 Kuis selesai! Terima kasih telah belajar!',
+                  style: TextStyle(fontSize: 18, color: Colors.green),
                 ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-                minimumSize: const Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ), // <= Tutup styleFrom
-              onPressed: () {
-                setState(() {
-                  _showQuiz = false;
-                  _quizScore = 0;
-                  _selectedQuizAnswer = -1;
-                  _quizSubmitted = false;
-                });
-              },
-              child: const Text('Kembali ke Materi'),
-            ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

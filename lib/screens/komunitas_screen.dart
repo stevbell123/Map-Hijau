@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../providers/komunitas_provider.dart';
-
-void main() {
-  runApp(MaterialApp(home: KomunitasScreen()));
-}
 
 class KomunitasScreen extends StatefulWidget {
   @override
@@ -16,6 +16,8 @@ class KomunitasScreen extends StatefulWidget {
 class _KomunitasScreenState extends State<KomunitasScreen> {
   String selectedCategory = 'Semua';
   String filterType = 'Semua';
+  bool _isLoading = false;
+
   Map<String, bool> komunitasStatus = {
     'Komunitas Lingkungan': false,
     'Komunitas Daur Ulang': false,
@@ -25,6 +27,7 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
     'Komunitas Kompos': false,
     'Komunitas Energi Terbarukan': false,
   };
+
   TextEditingController searchController = TextEditingController();
   String searchQuery = '';
 
@@ -34,49 +37,49 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
       "deskripsi": "Peduli lingkungan sekitar.",
       "anggota": 120,
       "icon": Icons.eco,
-      "color": Colors.green,
+      "color": Colors.green.shade600,
     },
     {
       "nama": "Komunitas Daur Ulang",
       "deskripsi": "Belajar mengolah sampah.",
       "anggota": 80,
       "icon": Icons.recycling,
-      "color": Colors.blue,
+      "color": Colors.green.shade500,
     },
     {
       "nama": "Komunitas Edukasi",
       "deskripsi": "Edukasi tentang lingkungan.",
       "anggota": 100,
       "icon": Icons.menu_book,
-      "color": Colors.orange,
+      "color": Colors.green.shade700,
     },
     {
       "nama": "Komunitas Bersih Pantai",
       "deskripsi": "Aksi bersih-bersih pantai.",
       "anggota": 65,
       "icon": Icons.beach_access,
-      "color": Colors.teal,
+      "color": Colors.green.shade400,
     },
     {
       "nama": "Komunitas Tanam Pohon",
       "deskripsi": "Menanam dan merawat pohon.",
       "anggota": 150,
       "icon": Icons.nature,
-      "color": Colors.brown,
+      "color": Colors.green.shade800,
     },
     {
       "nama": "Komunitas Kompos",
       "deskripsi": "Membuat kompos dari sampah organik.",
       "anggota": 45,
       "icon": Icons.eco_outlined,
-      "color": Colors.lime,
+      "color": Colors.green.shade300,
     },
     {
       "nama": "Komunitas Energi Terbarukan",
       "deskripsi": "Diskusi energi bersih.",
       "anggota": 90,
       "icon": Icons.bolt,
-      "color": Colors.yellow,
+      "color": Colors.green.shade900,
     },
   ];
 
@@ -96,7 +99,6 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
         if (!categoryMatch) return false;
       }
 
-      // Filter berdasarkan pencarian
       if (searchQuery.isNotEmpty) {
         final searchMatch =
             nama.toLowerCase().contains(searchQuery.toLowerCase()) ||
@@ -110,19 +112,113 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
     }).toList();
   }
 
+  void _showCustomSnackBar(String message, {bool isError = false}) {
+    final overlay = Overlay.of(context);
+    late OverlayEntry overlayEntry;
+
+    overlayEntry = OverlayEntry(
+      builder:
+          (context) => Positioned(
+            bottom: 100,
+            left: 20,
+            right: 20,
+            child: Material(
+              color: Colors.transparent,
+              child:
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: isError ? Colors.red : Colors.green,
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 8,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          isError ? Icons.error : Icons.check_circle,
+                          color: Colors.white,
+                        ),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            message,
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ).animate().slideY(begin: 1, end: 0).fadeIn(),
+            ),
+          ),
+    );
+
+    overlay.insert(overlayEntry);
+
+    Future.delayed(Duration(seconds: 3), () {
+      overlayEntry.remove();
+    });
+  }
+
+  Future<void> _joinCommunity(String communityName) async {
+    try {
+      setState(() {
+        _isLoading = false;
+      });
+
+      await Future.delayed(Duration(milliseconds: 100));
+
+      setState(() {
+        komunitasStatus[communityName] = true;
+        _isLoading = false;
+      });
+
+      _showCustomSnackBar("Berhasil bergabung dengan $communityName");
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+
+      _showCustomSnackBar("Terjadi kesalahan: ${e.toString()}", isError: true);
+    }
+  }
+
   void _showLeaveConfirmation(String communityName) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Konfirmasi"),
-          content: Text("Apakah Anda yakin ingin keluar dari $communityName?"),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            "Konfirmasi",
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
+          ),
+          content: Text(
+            "Apakah Anda yakin ingin keluar dari $communityName?",
+            style: GoogleFonts.poppins(),
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: Text(
                 "Batal",
-                style: TextStyle(color: Colors.grey.shade800),
+                style: GoogleFonts.poppins(
+                  color: Colors.grey.shade800,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
             TextButton(
@@ -131,14 +227,19 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
                   komunitasStatus[communityName] = false;
                 });
                 Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("Anda telah keluar dari $communityName"),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
+                _showCustomSnackBar("Anda telah keluar dari $communityName");
               },
-              child: Text("Keluar", style: TextStyle(color: Colors.red)),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              ),
+              child: Text(
+                "Keluar",
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.red,
+                ),
+              ),
             ),
           ],
         );
@@ -150,7 +251,7 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
     final _formKey = GlobalKey<FormState>();
     final _nameController = TextEditingController();
     final _descController = TextEditingController();
-    Color _selectedColor = Colors.green;
+    Color _selectedColor = Colors.green.shade600;
     IconData _selectedIcon = Icons.eco;
 
     showDialog(
@@ -159,7 +260,16 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: Text("Buat Komunitas Baru"),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Text(
+                "Buat Komunitas Baru",
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
               content: SingleChildScrollView(
                 child: Form(
                   key: _formKey,
@@ -170,7 +280,10 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
                         controller: _nameController,
                         decoration: InputDecoration(
                           labelText: 'Nama Komunitas',
-                          border: OutlineInputBorder(),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          prefixIcon: Icon(Icons.group),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -184,7 +297,10 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
                         controller: _descController,
                         decoration: InputDecoration(
                           labelText: 'Deskripsi',
-                          border: OutlineInputBorder(),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          prefixIcon: Icon(Icons.description),
                         ),
                         maxLines: 3,
                         validator: (value) {
@@ -195,133 +311,37 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
                         },
                       ),
                       SizedBox(height: 16),
-                      Text("Pilih Warna:"),
-                      SizedBox(height: 8),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _selectedColor = Colors.green;
-                                });
-                              },
-                              child: _ColorOption(
-                                color: Colors.green,
-                                isSelected: _selectedColor == Colors.green,
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _selectedColor = Colors.blue;
-                                });
-                              },
-                              child: _ColorOption(
-                                color: Colors.blue,
-                                isSelected: _selectedColor == Colors.blue,
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _selectedColor = Colors.orange;
-                                });
-                              },
-                              child: _ColorOption(
-                                color: Colors.orange,
-                                isSelected: _selectedColor == Colors.orange,
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _selectedColor = Colors.teal;
-                                });
-                              },
-                              child: _ColorOption(
-                                color: Colors.teal,
-                                isSelected: _selectedColor == Colors.teal,
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _selectedColor = Colors.brown;
-                                });
-                              },
-                              child: _ColorOption(
-                                color: Colors.brown,
-                                isSelected: _selectedColor == Colors.brown,
-                              ),
-                            ),
-                          ],
-                        ),
+                      // Removed color selection section
+                      Text(
+                        "Pilih Ikon:",
+                        style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
                       ),
-                      SizedBox(height: 16),
-                      Text("Pilih Ikon:"),
                       SizedBox(height: 8),
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _selectedIcon = Icons.eco;
-                                });
-                              },
-                              child: _IconOption(
-                                icon: Icons.eco,
-                                isSelected: _selectedIcon == Icons.eco,
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _selectedIcon = Icons.recycling;
-                                });
-                              },
-                              child: _IconOption(
-                                icon: Icons.recycling,
-                                isSelected: _selectedIcon == Icons.recycling,
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _selectedIcon = Icons.menu_book;
-                                });
-                              },
-                              child: _IconOption(
-                                icon: Icons.menu_book,
-                                isSelected: _selectedIcon == Icons.menu_book,
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _selectedIcon = Icons.beach_access;
-                                });
-                              },
-                              child: _IconOption(
-                                icon: Icons.beach_access,
-                                isSelected: _selectedIcon == Icons.beach_access,
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _selectedIcon = Icons.nature;
-                                });
-                              },
-                              child: _IconOption(
-                                icon: Icons.nature,
-                                isSelected: _selectedIcon == Icons.nature,
-                              ),
-                            ),
-                          ],
+                          children:
+                              [
+                                Icons.eco,
+                                Icons.recycling,
+                                Icons.menu_book,
+                                Icons.beach_access,
+                                Icons.nature,
+                                Icons.bolt,
+                                Icons.water_drop,
+                              ].map((icon) {
+                                return GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _selectedIcon = icon;
+                                    });
+                                  },
+                                  child: _IconOption(
+                                    icon: icon,
+                                    isSelected: _selectedIcon == icon,
+                                  ),
+                                );
+                              }).toList(),
                         ),
                       ),
                     ],
@@ -331,17 +351,14 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.grey[800],
-                    textStyle: TextStyle(
-                      fontSize: 16,
+                  child: Text(
+                    "Batal",
+                    style: GoogleFonts.poppins(
+                      color: Colors.grey[800],
                       fontWeight: FontWeight.w500,
                     ),
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   ),
-                  child: Text("Batal"),
                 ),
-
                 ElevatedButton(
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
@@ -361,24 +378,23 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
                           komunitasStatus[_nameController.text] = true;
                         });
                       }
-
                       Navigator.of(context).pop();
                       await Future.delayed(Duration(milliseconds: 50));
-
                       if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text("Komunitas berhasil dibuat!"),
-                            duration: Duration(seconds: 2),
-                          ),
-                        );
+                        _showCustomSnackBar("Komunitas berhasil dibuat!");
                       }
                     }
                   },
-                  child: Text("Buat"),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
                     foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    "Buat",
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
                   ),
                 ),
               ],
@@ -404,7 +420,16 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: Text("Buat Event Baru"),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Text(
+                "Buat Event Baru",
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
               content: SingleChildScrollView(
                 child: Form(
                   key: _formKey,
@@ -415,7 +440,10 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
                         value: _selectedCommunity,
                         decoration: InputDecoration(
                           labelText: 'Pilih Komunitas',
-                          border: OutlineInputBorder(),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          prefixIcon: Icon(Icons.group),
                         ),
                         items:
                             komunitasList
@@ -451,7 +479,10 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
                         controller: _titleController,
                         decoration: InputDecoration(
                           labelText: 'Judul Event',
-                          border: OutlineInputBorder(),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          prefixIcon: Icon(Icons.event),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -465,7 +496,10 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
                         controller: _descController,
                         decoration: InputDecoration(
                           labelText: 'Deskripsi Event',
-                          border: OutlineInputBorder(),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          prefixIcon: Icon(Icons.description),
                         ),
                         maxLines: 3,
                         validator: (value) {
@@ -480,7 +514,10 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
                         controller: _locationController,
                         decoration: InputDecoration(
                           labelText: 'Lokasi',
-                          border: OutlineInputBorder(),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          prefixIcon: Icon(Icons.location_on),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -491,11 +528,15 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
                       ),
                       SizedBox(height: 16),
                       ListTile(
-                        leading: Icon(Icons.calendar_today),
+                        leading: Icon(
+                          Icons.calendar_today,
+                          color: Colors.green,
+                        ),
                         title: Text(
                           _selectedDate == null
                               ? 'Pilih Tanggal'
                               : 'Tanggal: ${DateFormat('dd MMM yyyy').format(_selectedDate!)}',
+                          style: GoogleFonts.poppins(),
                         ),
                         onTap: () async {
                           final date = await showDatePicker(
@@ -508,13 +549,19 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
                             setState(() => _selectedDate = date);
                           }
                         },
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          side: BorderSide(color: Colors.grey.shade300),
+                        ),
                       ),
+                      SizedBox(height: 8),
                       ListTile(
-                        leading: Icon(Icons.access_time),
+                        leading: Icon(Icons.access_time, color: Colors.green),
                         title: Text(
                           _selectedTime == null
                               ? 'Pilih Waktu'
                               : 'Waktu: ${_selectedTime!.format(context)}',
+                          style: GoogleFonts.poppins(),
                         ),
                         onTap: () async {
                           final time = await showTimePicker(
@@ -525,6 +572,10 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
                             setState(() => _selectedTime = time);
                           }
                         },
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          side: BorderSide(color: Colors.grey.shade300),
+                        ),
                       ),
                     ],
                   ),
@@ -533,17 +584,14 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.grey[800],
-                    textStyle: TextStyle(
-                      fontSize: 16,
+                  child: Text(
+                    "Batal",
+                    style: GoogleFonts.poppins(
+                      color: Colors.grey[800],
                       fontWeight: FontWeight.w500,
                     ),
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   ),
-                  child: Text("Batal"),
                 ),
-
                 ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate() &&
@@ -562,7 +610,6 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
                         color: Colors.green,
                       );
 
-                      // Tambahkan event ke provider
                       final provider = Provider.of<KomunitasProvider>(
                         context,
                         listen: false,
@@ -570,31 +617,28 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
                       provider.addEvent(newEvent);
 
                       Navigator.of(context).pop();
-
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => EventScreen()),
                       );
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text("Event berhasil dibuat!"),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
+                      _showCustomSnackBar("Event berhasil dibuat!");
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text("Harap lengkapi semua data"),
-                          duration: Duration(seconds: 2),
-                        ),
+                      _showCustomSnackBar(
+                        "Harap lengkapi semua data",
+                        isError: true,
                       );
                     }
                   },
-                  child: Text("Buat"),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
                     foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    "Buat",
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
                   ),
                 ),
               ],
@@ -607,7 +651,6 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
 
   void _showInviteFriendsDialog() {
     final selectedCommunities = <String, bool>{};
-
     for (var community in komunitasList) {
       final String name = community['nama'] as String;
       selectedCommunities[name] = false;
@@ -619,19 +662,33 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: Text("Undang Teman"),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Text(
+                "Undang Teman",
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text("Pilih komunitas untuk diundang:"),
+                    Text(
+                      "Pilih komunitas untuk diundang:",
+                      style: GoogleFonts.poppins(),
+                    ),
                     SizedBox(height: 16),
                     ...komunitasList.map((community) {
                       final communityName = community['nama'] as String;
                       final isActive = komunitasStatus[communityName] == true;
-
                       return CheckboxListTile(
-                        title: Text(communityName),
+                        title: Text(
+                          communityName,
+                          style: GoogleFonts.poppins(),
+                        ),
                         value: selectedCommunities[communityName] ?? false,
                         onChanged:
                             isActive
@@ -648,6 +705,9 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
                         ),
                         controlAffinity: ListTileControlAffinity.leading,
                         dense: true,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       );
                     }).toList(),
                   ],
@@ -656,18 +716,14 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  style: TextButton.styleFrom(
-                    foregroundColor:
-                        Colors.grey[800], // atau Colors.black.withOpacity(0.7)
-                    textStyle: TextStyle(
-                      fontSize: 16,
+                  child: Text(
+                    "Batal",
+                    style: GoogleFonts.poppins(
+                      color: Colors.grey[800],
                       fontWeight: FontWeight.w500,
                     ),
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   ),
-                  child: Text("Batal"),
                 ),
-
                 ElevatedButton(
                   onPressed: () {
                     final selectedCount =
@@ -678,30 +734,28 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
                                   entry.value == true,
                             )
                             .length;
-
                     if (selectedCount > 0) {
                       Navigator.of(context).pop();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            "Undangan telah dikirim ke $selectedCount komunitas",
-                          ),
-                          duration: Duration(seconds: 2),
-                        ),
+                      _showCustomSnackBar(
+                        "Undangan telah dikirim ke $selectedCount komunitas",
                       );
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text("Pilih setidaknya satu komunitas"),
-                          duration: Duration(seconds: 2),
-                        ),
+                      _showCustomSnackBar(
+                        "Pilih setidaknya satu komunitas",
+                        isError: true,
                       );
                     }
                   },
-                  child: Text("Undang"),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
                     foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    "Undang",
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
                   ),
                 ),
               ],
@@ -725,7 +779,7 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 1,
+        elevation: 0,
         title: _buildSearchBar(),
         actions: [
           Padding(
@@ -745,26 +799,36 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
         ],
       ),
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 20),
+        padding: const EdgeInsets.only(bottom: 5),
         child: SpeedDial(
           icon: Icons.add,
           activeIcon: Icons.close,
           backgroundColor: Colors.green.shade700,
           foregroundColor: Colors.white,
+          overlayColor: Colors.black,
+          overlayOpacity: 0.4,
+          spacing: 12,
+          spaceBetweenChildren: 12,
           children: [
             SpeedDialChild(
-              child: Icon(Icons.group_add),
+              child: Icon(Icons.group_add, color: Colors.white),
+              backgroundColor: Colors.green.shade600,
               label: 'Buat Komunitas',
+              labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.w500),
               onTap: _showCreateCommunityDialog,
             ),
             SpeedDialChild(
-              child: Icon(Icons.event),
+              child: Icon(Icons.event, color: Colors.white),
+              backgroundColor: Colors.green.shade500,
               label: 'Buat Event',
+              labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.w500),
               onTap: () => _showCreateEventDialog(context),
             ),
             SpeedDialChild(
-              child: Icon(Icons.person_add),
+              child: Icon(Icons.person_add, color: Colors.white),
+              backgroundColor: Colors.green.shade400,
               label: 'Undang Teman',
+              labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.w500),
               onTap: _showInviteFriendsDialog,
             ),
           ],
@@ -779,12 +843,21 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
       decoration: BoxDecoration(
         color: Colors.grey.shade100,
         borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: TextField(
         controller: searchController,
         onChanged: (value) => setState(() => searchQuery = value),
+        style: GoogleFonts.poppins(),
         decoration: InputDecoration(
           hintText: 'Cari komunitas...',
+          hintStyle: GoogleFonts.poppins(color: Colors.grey),
           border: InputBorder.none,
           prefixIcon: Icon(Icons.search, color: Colors.grey),
           suffixIcon:
@@ -810,7 +883,11 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
-          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
         ],
       ),
       child: Column(
@@ -824,7 +901,16 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
                         (item) => Padding(
                           padding: EdgeInsets.only(right: 8),
                           child: FilterChip(
-                            label: Text(item),
+                            label: Text(
+                              item,
+                              style: GoogleFonts.poppins(
+                                color:
+                                    selectedCategory == item
+                                        ? Colors.green.shade800
+                                        : Colors.grey.shade800,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
                             selected: selectedCategory == item,
                             onSelected: (value) {
                               setState(() {
@@ -833,13 +919,6 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
                             },
                             selectedColor: Colors.green.shade100,
                             backgroundColor: Colors.grey.shade100,
-                            labelStyle: TextStyle(
-                              color:
-                                  selectedCategory == item
-                                      ? Colors.green.shade800
-                                      : Colors.grey.shade800,
-                              fontWeight: FontWeight.w500,
-                            ),
                             shape: StadiumBorder(
                               side: BorderSide(
                                 color:
@@ -868,7 +947,7 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
                 },
                 activeColor: Colors.green,
               ),
-              Text("Semua"),
+              Text("Semua", style: GoogleFonts.poppins()),
               SizedBox(width: 20),
               Radio(
                 value: 'Diikuti',
@@ -880,7 +959,7 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
                 },
                 activeColor: Colors.green,
               ),
-              Text("Diikuti"),
+              Text("Diikuti", style: GoogleFonts.poppins()),
             ],
           ),
         ],
@@ -891,144 +970,229 @@ class _KomunitasScreenState extends State<KomunitasScreen> {
   Widget _buildCommunityList() {
     return Padding(
       padding: const EdgeInsets.only(bottom: 80, left: 16, right: 16),
-      child: ListView.separated(
-        separatorBuilder: (context, index) => const SizedBox(height: 12),
-        itemCount: filteredKomunitas.length,
-        itemBuilder: (context, index) {
-          final item = filteredKomunitas[index];
-          final nama = item['nama'] as String;
-          bool isFollowing = komunitasStatus[nama] ?? false;
+      child: AnimationLimiter(
+        child: ListView.separated(
+          separatorBuilder: (context, index) => const SizedBox(height: 12),
+          itemCount: filteredKomunitas.length,
+          itemBuilder: (context, index) {
+            final item = filteredKomunitas[index];
+            final nama = item['nama'] as String;
+            bool isFollowing = komunitasStatus[nama] ?? false;
 
-          return Card(
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: (item['color'] as Color).withOpacity(0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          item['icon'] as IconData,
-                          size: 24,
-                          color: item['color'] as Color,
+            return AnimationConfiguration.staggeredList(
+              position: index,
+              duration: const Duration(milliseconds: 375),
+              child: SlideAnimation(
+                verticalOffset: 50.0,
+                child: FadeInAnimation(
+                  child: Card(
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Colors.white,
+                            (item['color'] as Color).withOpacity(0.02),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              nama,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              item['deskripsi'] as String,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
                             Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(
-                                  Icons.people,
-                                  size: 16,
-                                  color: Colors.grey.shade500,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  "${item['anggota']} Anggota",
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey.shade600,
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: (item['color'] as Color).withOpacity(
+                                      0.15,
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Icon(
+                                    item['icon'] as IconData,
+                                    size: 28,
+                                    color: item['color'] as Color,
                                   ),
                                 ),
-                                const Spacer(),
-                                isFollowing
-                                    ? ElevatedButton(
-                                      onPressed:
-                                          () => _showLeaveConfirmation(nama),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.white,
-                                        foregroundColor: Colors.red,
-                                        shape: const StadiumBorder(),
-                                        side: BorderSide(color: Colors.red),
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 12,
-                                          horizontal: 24,
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        nama,
+                                        style: GoogleFonts.poppins(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
                                         ),
                                       ),
-                                      child: const Text("Keluar"),
-                                    )
-                                    : ElevatedButton(
-                                      onPressed: () {
-                                        setState(() {
-                                          komunitasStatus[nama] = true;
-                                        });
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              "Anda bergabung dengan $nama",
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        item['deskripsi'] as String,
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 14,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Row(
+                                        children: [
+                                          Container(
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 4,
                                             ),
-                                            duration: const Duration(
-                                              seconds: 2,
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey.shade100,
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
                                             ),
-                                            behavior:
-                                                SnackBarBehavior
-                                                    .fixed, // Fix FAB position
-                                            margin: const EdgeInsets.only(
-                                              bottom:
-                                                  100, // Adjust based on FAB height
-                                              left: 20,
-                                              right: 20,
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  Icons.people,
+                                                  size: 16,
+                                                  color: Colors.grey.shade600,
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  "${item['anggota']} Anggota",
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 12,
+                                                    color: Colors.grey.shade600,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
-                                        );
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.green.shade600,
-                                        foregroundColor: Colors.white,
-                                        shape: const StadiumBorder(),
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 12,
-                                          horizontal: 32,
-                                        ),
+                                          const Spacer(),
+                                          isFollowing
+                                              ? TextButton(
+                                                onPressed:
+                                                    () =>
+                                                        _showLeaveConfirmation(
+                                                          nama,
+                                                        ),
+                                                style: TextButton.styleFrom(
+                                                  foregroundColor: Colors.red,
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        vertical: 12,
+                                                        horizontal: 24,
+                                                      ),
+                                                ),
+                                                child: Text(
+                                                  "Keluar",
+                                                  style: GoogleFonts.poppins(
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Colors.red,
+                                                  ),
+                                                ),
+                                              )
+                                              : _isLoading
+                                              ? Container(
+                                                width: 80,
+                                                height: 40,
+                                                child: Shimmer.fromColors(
+                                                  baseColor:
+                                                      Colors.grey.shade300,
+                                                  highlightColor:
+                                                      Colors.grey.shade100,
+                                                  child: Container(
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            20,
+                                                          ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              )
+                                              : ElevatedButton(
+                                                onPressed:
+                                                    () => _joinCommunity(nama),
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor:
+                                                      Colors.green.shade600,
+                                                  foregroundColor: Colors.white,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          20,
+                                                        ),
+                                                  ),
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        vertical: 12,
+                                                        horizontal: 32,
+                                                      ),
+                                                  elevation: 3,
+                                                ),
+                                                child: Text(
+                                                  "Gabung",
+                                                  style: GoogleFonts.poppins(
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ), // Removed .animate().scale()
+                                        ],
                                       ),
-                                      child: const Text("Gabung"),
-                                    ),
+                                    ],
+                                  ),
+                                ),
                               ],
                             ),
                           ],
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                ],
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
+  }
+}
+
+class _IconOption extends StatelessWidget {
+  final IconData icon;
+  final bool isSelected;
+
+  const _IconOption({required this.icon, required this.isSelected});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(right: 8),
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: isSelected ? Colors.green.shade100 : Colors.grey.shade200,
+        shape: BoxShape.circle,
+        border: isSelected ? Border.all(color: Colors.green, width: 2) : null,
+      ),
+      child: Icon(
+        icon,
+        color: isSelected ? Colors.green : Colors.grey.shade700,
+      ),
+    ); // Removed .animate().scale()
   }
 }
 
@@ -1036,6 +1200,66 @@ class EventScreen extends StatelessWidget {
   final Event? newEvent;
 
   const EventScreen({super.key, this.newEvent});
+
+  void _showCustomNotification(
+    BuildContext context,
+    String message, {
+    bool isError = false,
+  }) {
+    final overlay = Overlay.of(context);
+    late OverlayEntry overlayEntry;
+
+    overlayEntry = OverlayEntry(
+      builder:
+          (context) => Positioned(
+            bottom: 100,
+            left: 20,
+            right: 20,
+            child: Material(
+              color: Colors.transparent,
+              child:
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: isError ? Colors.red : Colors.green,
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 8,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          isError ? Icons.error : Icons.check_circle,
+                          color: Colors.white,
+                        ),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            message,
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ).animate().slideY(begin: 1, end: 0).fadeIn(),
+            ),
+          ),
+    );
+
+    overlay.insert(overlayEntry);
+
+    Future.delayed(Duration(seconds: 3), () {
+      overlayEntry.remove();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1059,18 +1283,27 @@ class EventScreen extends StatelessWidget {
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 1,
+        elevation: 0,
         title: Container(
           height: 42,
           decoration: BoxDecoration(
             color: Colors.grey.shade100,
             borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 4,
+                offset: Offset(0, 2),
+              ),
+            ],
           ),
           child: TextField(
             controller: searchController,
             onChanged: (value) => provider.setEventSearchQuery(value),
+            style: GoogleFonts.poppins(),
             decoration: InputDecoration(
               hintText: 'Cari event...',
+              hintStyle: GoogleFonts.poppins(color: Colors.grey),
               border: InputBorder.none,
               prefixIcon: Icon(Icons.search, color: Colors.grey),
               suffixIcon:
@@ -1098,7 +1331,7 @@ class EventScreen extends StatelessWidget {
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black12,
+                  color: Colors.black.withOpacity(0.05),
                   blurRadius: 4,
                   offset: Offset(0, 2),
                 ),
@@ -1118,18 +1351,20 @@ class EventScreen extends StatelessWidget {
                       return Padding(
                         padding: EdgeInsets.only(right: 8),
                         child: FilterChip(
-                          label: Text(item),
+                          label: Text(
+                            item,
+                            style: GoogleFonts.poppins(
+                              color:
+                                  filter == item
+                                      ? Colors.green.shade800
+                                      : Colors.grey.shade800,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                           selected: filter == item,
                           onSelected: (_) => provider.setEventFilter(item),
                           selectedColor: Colors.green.shade100,
                           backgroundColor: Colors.grey.shade100,
-                          labelStyle: TextStyle(
-                            color:
-                                filter == item
-                                    ? Colors.green.shade800
-                                    : Colors.grey.shade800,
-                            fontWeight: FontWeight.w500,
-                          ),
                           shape: StadiumBorder(
                             side: BorderSide(
                               color:
@@ -1145,163 +1380,237 @@ class EventScreen extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: ListView.separated(
-              padding: EdgeInsets.all(16),
-              separatorBuilder: (context, index) => SizedBox(height: 12),
-              itemCount: events.length,
-              itemBuilder: (context, index) {
-                final event = events[index];
-                final isJoined = provider.isParticipating(event.nama);
+            child: AnimationLimiter(
+              child: ListView.separated(
+                padding: EdgeInsets.all(16),
+                separatorBuilder: (context, index) => SizedBox(height: 12),
+                itemCount: events.length,
+                itemBuilder: (context, index) {
+                  final event = events[index];
+                  final isJoined = provider.isParticipating(event.nama);
 
-                return Card(
-                  elevation: 3,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(width: 4, height: 40, color: event.color),
-                            SizedBox(width: 12),
-                            Expanded(
+                  return AnimationConfiguration.staggeredList(
+                    position: index,
+                    duration: const Duration(milliseconds: 375),
+                    child: SlideAnimation(
+                      verticalOffset: 50.0,
+                      child: FadeInAnimation(
+                        child: Card(
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Colors.white,
+                                  Colors.green.withOpacity(0.05),
+                                ],
+                              ),
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.all(16),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width: 4,
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                          color: Colors.green.shade600,
+                                          borderRadius: BorderRadius.circular(
+                                            2,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              event.nama,
+                                              style: GoogleFonts.poppins(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                              ),
+                                            ),
+                                            Text(
+                                              event.komunitas,
+                                              style: GoogleFonts.poppins(
+                                                color: Colors.grey.shade600,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 12),
                                   Text(
-                                    event.nama,
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
+                                    event.deskripsi,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      color: Colors.grey.shade700,
                                     ),
                                   ),
-                                  Text(
-                                    event.komunitas,
-                                    style: TextStyle(
-                                      color: Colors.grey.shade600,
-                                      fontSize: 12,
-                                    ),
+                                  SizedBox(height: 12),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade100,
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.calendar_today,
+                                              size: 14,
+                                              color: Colors.grey.shade600,
+                                            ),
+                                            SizedBox(width: 4),
+                                            Text(
+                                              "${event.tanggal} • ${event.waktu}",
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 12,
+                                                color: Colors.grey.shade600,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      SizedBox(width: 8),
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade100,
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.location_on,
+                                              size: 14,
+                                              color: Colors.grey.shade600,
+                                            ),
+                                            SizedBox(width: 4),
+                                            Text(
+                                              event.lokasi,
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 12,
+                                                color: Colors.grey.shade600,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 12),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.green.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.people,
+                                              size: 14,
+                                              color: Colors.green.shade600,
+                                            ),
+                                            SizedBox(width: 4),
+                                            Text(
+                                              "${event.peserta} Peserta",
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 12,
+                                                color: Colors.green.shade600,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Spacer(),
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          provider.toggleEventParticipation(
+                                            event.nama,
+                                          );
+                                          _showCustomNotification(
+                                            context,
+                                            isJoined
+                                                ? "Batal mengikuti ${event.nama}"
+                                                : "Anda mengikuti ${event.nama}",
+                                          );
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor:
+                                              isJoined
+                                                  ? Colors.red
+                                                  : Colors.green.shade600,
+                                          foregroundColor: Colors.white,
+                                          minimumSize: Size(100, 36),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              18,
+                                            ),
+                                          ),
+                                          elevation: 2,
+                                        ),
+                                        child: Text(
+                                          isJoined ? "Batal" : "Ikuti",
+                                          style: GoogleFonts.poppins(
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ), // Removed .animate().scale(duration: 200.ms)
+                                    ],
                                   ),
                                 ],
                               ),
                             ),
-                          ],
+                          ),
                         ),
-                        SizedBox(height: 12),
-                        Text(event.deskripsi),
-                        SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.calendar_today,
-                              size: 16,
-                              color: Colors.grey,
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              "${event.tanggal} • ${event.waktu}",
-                              style: TextStyle(fontSize: 12),
-                            ),
-                            SizedBox(width: 12),
-                            Icon(
-                              Icons.location_on,
-                              size: 16,
-                              color: Colors.grey,
-                            ),
-                            SizedBox(width: 4),
-                            Text(event.lokasi, style: TextStyle(fontSize: 12)),
-                          ],
-                        ),
-                        SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Icon(Icons.people, size: 16, color: Colors.grey),
-                            SizedBox(width: 4),
-                            Text(
-                              "${event.peserta} Peserta",
-                              style: TextStyle(fontSize: 12),
-                            ),
-                            Spacer(),
-                            ElevatedButton(
-                              onPressed: () {
-                                provider.toggleEventParticipation(event.nama);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      isJoined
-                                          ? "Batal mengikuti ${event.nama}"
-                                          : "Anda mengikuti ${event.nama}",
-                                    ),
-                                    duration: Duration(seconds: 2),
-                                  ),
-                                );
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    isJoined ? Colors.grey : Colors.green,
-                                foregroundColor: Colors.white,
-                                minimumSize: Size(100, 36),
-                              ),
-                              child: Text(isJoined ? "Batal" : "Ikuti"),
-                            ),
-                          ],
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ColorOption extends StatelessWidget {
-  final Color color;
-  final bool isSelected;
-
-  const _ColorOption({required this.color, required this.isSelected});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.only(right: 8),
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-        border: isSelected ? Border.all(color: Colors.black, width: 2) : null,
-      ),
-    );
-  }
-}
-
-class _IconOption extends StatelessWidget {
-  final IconData icon;
-  final bool isSelected;
-
-  const _IconOption({required this.icon, required this.isSelected});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.only(right: 8),
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        color: isSelected ? Colors.green.shade100 : Colors.grey.shade200,
-        shape: BoxShape.circle,
-      ),
-      child: Icon(
-        icon,
-        color: isSelected ? Colors.green : Colors.grey.shade700,
       ),
     );
   }

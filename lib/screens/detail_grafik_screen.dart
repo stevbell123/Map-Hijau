@@ -11,8 +11,8 @@ class _DetailGrafikScreenState extends State<DetailGrafikScreen> {
   @override
   Widget build(BuildContext context) {
     String imagePath = _selectedPeriod == 'Mingguan'
-        ? 'assets/chart_mingguan.jpg'
-        : 'assets/chart_bulanan.jpg';
+        ? 'lib/assets/chart1.jpeg'
+        : 'lib/assets/chart2.jpeg'; 
 
     return Scaffold(
       appBar: AppBar(

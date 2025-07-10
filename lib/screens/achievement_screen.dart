@@ -1,244 +1,198 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 
 class AchievementScreen extends StatefulWidget {
+  const AchievementScreen({super.key});
+
   @override
-  _AchievementScreenState createState() => _AchievementScreenState();
+  State<AchievementScreen> createState() => _AchievementScreenState();
 }
 
-class _AchievementScreenState extends State<AchievementScreen> {
-  final List<Map<String, dynamic>> achievements = [
-    {
-      "icon": Icons.delete_outline,
-      "title": "Pahlawan Hijau",
-      "description": "Buang sampah 10 kali",
-      "unlocked": true,
-      "progress": 1.0,
-      "target": 10,
-      "current": 10,
-    },
-    {
-      "icon": Icons.recycling,
-      "title": "Daur Ulang Pro",
-      "description": "Daur ulang 5 jenis sampah berbeda",
-      "unlocked": false,
-      "progress": 0.6,
-      "target": 5,
-      "current": 3,
-    },
-    {
-      "icon": Icons.volunteer_activism,
-      "title": "Relawan Lingkungan",
-      "description": "Gabung komunitas kebersihan",
-      "unlocked": true,
-      "progress": 1.0,
-      "target": 1,
-      "current": 1,
-    },
-    {
-      "icon": Icons.emoji_events,
-      "title": "Poin Master",
-      "description": "Kumpulkan 1000 poin",
-      "unlocked": false,
-      "progress": 0.35,
-      "target": 1000,
-      "current": 350,
-    },
-    {
-      "icon": Icons.eco,
-      "title": "Eco Warrior",
-      "description": "Selesaikan 7 hari tantangan eco",
-      "unlocked": false,
-      "progress": 0.71,
-      "target": 7,
-      "current": 5,
-    },
-    {
-      "icon": Icons.thumb_up,
-      "title": "Pemula Baik",
-      "description": "Selesaikan 3 misi pertama",
-      "unlocked": true,
-      "progress": 1.0,
-      "target": 3,
-      "current": 3,
-    },
-  ];
-
-  int _totalAchievements = 0;
-  int _unlockedAchievements = 0;
+class _AchievementScreenState extends State<AchievementScreen> with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
 
   @override
   void initState() {
     super.initState();
-    _totalAchievements = achievements.length;
-    _unlockedAchievements = achievements.where((a) => a['unlocked']).length;
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    )..forward();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshIndicatorKey.currentState?.show(); 
+    });
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleRefresh() async {
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      await authProvider.fetchUserAchievements();
+      _animationController.reset();
+      _animationController.forward();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to refresh: ${e.toString()}'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      rethrow;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
+    // Calculate progress
+    final points = authProvider.points;
+    final level = (points / 100).floor() + 1;
+    final levelProgress = (points % 100) / 100;
+    final nextLevelPoints = 100 - (points % 100);
+
     return Scaffold(
-      backgroundColor: Colors.blue.shade50,
       appBar: AppBar(
-        title: const Text("Pencapaian"),
-        backgroundColor: Colors.green.shade700,
+        title: const Text('My Achievements'),
+        centerTitle: true,
         elevation: 0,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Center(
-              child: Text(
-                "$_unlockedAchievements/$_totalAchievements",
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.green.shade700,
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(20),
-                bottomRight: Radius.circular(20),
-              ),
-            ),
-            child: Column(
-              children: [
-                const Text(
-                  "Progress Pencapaian",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                LinearProgressIndicator(
-                  value: _unlockedAchievements / _totalAchievements,
-                  backgroundColor: Colors.green.shade900,
-                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-                  minHeight: 12,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  "${((_unlockedAchievements / _totalAchievements) * 100).toStringAsFixed(0)}% selesai",
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                const Color(0xFF1976D2),
+                const Color(0xFF0D47A1),
               ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
           ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: ListView.builder(
-              itemCount: achievements.length,
-              itemBuilder: (context, index) {
-                final achievement = achievements[index];
-                return GestureDetector(
-                  onTap: () => _showAchievementDetails(context, achievement),
-                  child: _buildAchievementCard(achievement),
-                );
-              },
-            ),
+        ),
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              const Color(0xFF1976D2).withOpacity(0.05),
+              theme.scaffoldBackgroundColor,
+            ],
           ),
-        ],
+        ),
+        child: authProvider.isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : RefreshIndicator(
+                key: _refreshIndicatorKey,
+                color: const Color(0xFF1976D2),
+                backgroundColor: isDarkMode ? Colors.grey[800] : Colors.white,
+                strokeWidth: 2.5,
+                displacement: 40,
+                edgeOffset: 20,
+                onRefresh: _handleRefresh,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      _buildLevelProgressCard(level, levelProgress, nextLevelPoints, points, theme),
+                      const SizedBox(height: 24),
+                      _buildAchievementList(authProvider.achievements, authProvider, theme),
+                    ],
+                  ),
+                ),
+              ),
       ),
     );
   }
 
-  Widget _buildAchievementCard(Map<String, dynamic> achievement) {
+  Widget _buildLevelProgressCard(int level, double progress, int nextLevelPoints, int points, ThemeData theme) {
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      margin: const EdgeInsets.symmetric(horizontal: 8),
       child: Container(
         decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
           gradient: LinearGradient(
-            colors: [Colors.green.shade100, Colors.green.shade50],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFF1976D2).withOpacity(0.8),
+              const Color(0xFF0D47A1).withOpacity(0.9),
+            ],
           ),
-          borderRadius: BorderRadius.circular(15),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(20),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  CircleAvatar(
-                    radius: 22,
-                    backgroundColor: achievement['unlocked']
-                        ? Colors.green.shade700
-                        : Colors.grey.shade400,
-                    child: Icon(
-                      achievement['icon'],
+                  Text(
+                    'Level $level',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                       color: Colors.white,
-                      size: 24,
                     ),
                   ),
-                  const SizedBox(width: 15),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          achievement['title'],
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green.shade900,
-                            fontSize: 16,
-                          ),
-                        ),
-                        Text(
-                          achievement['description'],
-                          style: TextStyle(
-                            color: Colors.green.shade800,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
+                  Text(
+                    'Level ${level + 1}',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
-                  ),
-                  Icon(
-                    achievement['unlocked']
-                        ? Icons.check_circle
-                        : Icons.lock_outline,
-                    color: achievement['unlocked']
-                        ? Colors.green.shade700
-                        : Colors.grey,
-                    size: 28,
                   ),
                 ],
               ),
-              if (!achievement['unlocked']) ...[
-                const SizedBox(height: 10),
-                LinearProgressIndicator(
-                  value: achievement['progress'],
-                  backgroundColor: Colors.grey.shade300,
-                  valueColor:
-                      AlwaysStoppedAnimation<Color>(Colors.green.shade600),
-                  minHeight: 8,
-                  borderRadius: BorderRadius.circular(4),
+              const SizedBox(height: 16),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: LinearProgressIndicator(
+                  value: progress,
+                  minHeight: 20,
+                  backgroundColor: Colors.white.withOpacity(0.2),
+                  color: const Color(0xFF64B5F6),
+                  valueColor: AlwaysStoppedAnimation<Color>(const Color(0xFF1976D2)),
                 ),
-                const SizedBox(height: 5),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    "${achievement['current']}/${achievement['target']} (${(achievement['progress'] * 100).toStringAsFixed(0)}%)",
-                    style: TextStyle(
-                      color: Colors.green.shade800,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildStatItem(
+                    icon: Icons.star,
+                    value: '$points',
+                    label: 'Total Points',
+                    color: const Color(0xFF64B5F6),
                   ),
-                ),
-              ],
+                  _buildStatItem(
+                    icon: Icons.emoji_events,
+                    value: '${Provider.of<AuthProvider>(context, listen: false).completedAchievements}',
+                    label: 'Achievements',
+                    color: Colors.white,
+                  ),
+                  _buildStatItem(
+                    icon: Icons.trending_up,
+                    value: '$nextLevelPoints',
+                    label: 'To Next Level',
+                    color: const Color(0xFFBBDEFB),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
@@ -246,96 +200,192 @@ class _AchievementScreenState extends State<AchievementScreen> {
     );
   }
 
-  void _showAchievementDetails(
-      BuildContext context, Map<String, dynamic> achievement) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        title: Column(
+  Widget _buildStatItem({required IconData icon, required String value, required String label, required Color color}) {
+    return Column(
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            CircleAvatar(
-              radius: 30,
-              backgroundColor: achievement['unlocked']
-                  ? Colors.green.shade700
-                  : Colors.grey.shade400,
-              child: Icon(
-                achievement['icon'],
-                color: Colors.white,
-                size: 32,
-              ),
-            ),
-            const SizedBox(height: 10),
+            Icon(icon, size: 16, color: color),
+            const SizedBox(width: 4),
             Text(
-              achievement['title'],
+              value,
               style: TextStyle(
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.green.shade900,
+                color: color,
               ),
-              textAlign: TextAlign.center,
             ),
           ],
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              achievement['description'],
-              style: TextStyle(
-                color: Colors.grey.shade800,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 15),
-            if (!achievement['unlocked']) ...[
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            color: Colors.white70,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAchievementList(List<Map<String, dynamic>> achievements, AuthProvider authProvider, ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Row(
+            children: [
               Text(
-                "Progress:",
+                'My Achievements',
                 style: TextStyle(
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Colors.green.shade800,
+                  color: theme.primaryColor,
                 ),
               ),
-              const SizedBox(height: 5),
-              LinearProgressIndicator(
-                value: achievement['progress'],
-                backgroundColor: Colors.grey.shade300,
-                valueColor:
-                    AlwaysStoppedAnimation<Color>(Colors.green.shade600),
-                minHeight: 10,
-              ),
-              const SizedBox(height: 5),
+              const Spacer(),
               Text(
-                "${achievement['current']} dari ${achievement['target']} (${(achievement['progress'] * 100).toStringAsFixed(0)}%)",
+                '${authProvider.completedAchievements}/${achievements.length}',
                 style: TextStyle(
-                  color: Colors.green.shade800,
-                  fontSize: 12,
+                  fontSize: 16,
+                  color: Colors.grey.shade600,
                 ),
               ),
             ],
-            if (achievement['unlocked'])
-              Text(
-                "Telah dicapai!",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green.shade700,
-                ),
-                textAlign: TextAlign.center,
-              ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Tutup"),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.green.shade700,
-            ),
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 16),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: achievements.length,
+          itemBuilder: (context, index) {
+            final achievement = achievements[index];
+            final completed = achievement['completed'] as bool;
+            final isClaimable = achievement['isClaimable'] as bool;
+            final progress = achievement['progress'] as double;
+
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, 0.5),
+                end: Offset.zero,
+              ).animate(
+                CurvedAnimation(
+                  parent: _animationController,
+                  curve: Interval(
+                    0.3 + (index * 0.1),
+                    1.0,
+                    curve: Curves.easeOut,
+                  ),
+                ),
+              ),
+              child: Card(
+                elevation: 2,
+                margin: const EdgeInsets.only(bottom: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: ListTile(
+                  contentPadding: const EdgeInsets.all(16),
+                  leading: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: achievement['iconColor'].withOpacity(0.2),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: achievement['iconColor'].withOpacity(0.5),
+                        width: 2,
+                      ),
+                    ),
+                    child: Icon(
+                      achievement['icon'],
+                      color: achievement['iconColor'],
+                      size: 28,
+                    ),
+                  ),
+                  title: Text(
+                    achievement['title'],
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: completed ? Colors.green : theme.textTheme.titleLarge?.color,
+                    ),
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 4),
+                      Text(
+                        achievement['description'],
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: LinearProgressIndicator(
+                          value: progress,
+                          minHeight: 16,
+                          backgroundColor: Colors.grey.shade200,
+                          color: completed ? Colors.green : theme.primaryColor,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            completed ? Colors.green : theme.primaryColor,
+                          ),
+                        ),
+                      ),
+                      if (isClaimable) ...[
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              authProvider.claimAchievement(achievement['id']);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Achievement "${achievement['title']}" claimed!'),
+                                  backgroundColor: Colors.green,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF2196F3),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.card_giftcard, size: 20),
+                                SizedBox(width: 8),
+                                Text('Claim Now', style: TextStyle(fontSize: 16)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  trailing: completed
+                      ? Icon(
+                          isClaimable ? Icons.card_giftcard : Icons.check_circle,
+                          color: isClaimable ? Colors.orange : Colors.green,
+                        )
+                      : null,
+                ),
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 }

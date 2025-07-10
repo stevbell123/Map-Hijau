@@ -103,11 +103,11 @@ class EdukasiScreen extends StatelessWidget {
         if (title == "Daur Ulang Logam") {
           Navigator.push(context, MaterialPageRoute(builder: (_) => DaurUlangLogamPage()));
         } else if (title == "Daur Ulang Plastik") {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => PlasticRecyclingPage()));
+          Navigator.push(context, MaterialPageRoute(builder: (_) => DaurUlangPlastikPage()));
         } else if (title == "Daur Ulang Kertas") {
           Navigator.push(context, MaterialPageRoute(builder: (_) => DaurUlangKertasPage()));
         } else if (title == "Manfaat Daur Ulang") {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => RecyclingBenefitsPage()));
+          Navigator.push(context, MaterialPageRoute(builder: (_) => ManfaatDaurUlangPage()));
         }
       },
       child: Card(

@@ -12,7 +12,7 @@ class CoinScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: const Text("Coin Rewards"),
-          backgroundColor: Colors.orange,
+          backgroundColor: const Color(0xFF4CAF50),
           bottom: const TabBar(
             tabs: [
               Tab(text: "Makanan"),
@@ -64,11 +64,11 @@ class CoinScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(15),
             decoration: BoxDecoration(
-              color: Colors.orange[100],
+              color: const Color(0xFFE8F5E9),
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.orange.withOpacity(0.5),
+                  color: Colors.green.withOpacity(0.3),
                   blurRadius: 15,
                   offset: const Offset(0, 5),
                 ),
@@ -77,7 +77,7 @@ class CoinScreen extends StatelessWidget {
             child: const Icon(
               Icons.monetization_on,
               size: 50,
-              color: Colors.orange,
+              color: Colors.yellow,
             ),
           ),
           const SizedBox(height: 8),
@@ -86,7 +86,7 @@ class CoinScreen extends StatelessWidget {
             style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: Colors.orange,
+              color: Color(0xFF4CAF50),
             ),
           ),
         ],
@@ -117,17 +117,12 @@ class CoinScreen extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: const Color(
-            0xFFFFC107,
-          ).withOpacity(0.2), // Amber soft
+          backgroundColor: const Color(0xFFE8F5E9),
           child: Icon(
-            VoucherProvider.getCategoryIcon(
-              voucher.category,
-            ), 
-            color: const Color(0xFFFFC107), 
+            VoucherProvider.getCategoryIcon(voucher.category),
+            color: const Color(0xFF4CAF50),
           ),
         ),
-
         title: Text(
           voucher.title,
           style: const TextStyle(fontWeight: FontWeight.bold),
@@ -136,7 +131,7 @@ class CoinScreen extends StatelessWidget {
         trailing: ElevatedButton(
           onPressed: () => _showRedeemDialog(context, voucher),
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.orange,
+            backgroundColor: const Color(0xFF4CAF50),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
@@ -184,7 +179,9 @@ class CoinScreen extends StatelessWidget {
                 Navigator.of(context).pop();
                 _showResultDialog(context, success, voucher);
               },
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF4CAF50),
+              ),
               child: const Text("Tukar"),
             ),
           ],
